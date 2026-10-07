@@ -148,12 +148,63 @@ function listSkillFiles(skillDir) {
 }
 
 /**
+ * 技能正文里提到的节点类型必须**真实存在**。
+ *
+ * ## 为什么值得单独做一条检查
+ *
+ * 技能是写给 AI agent 的操作手册，它会照着里面的 `typeId` / 参数名去 `graph_edit` 建图。
+ * 一旦手册里编了一个不存在的类型（`asset.pic` 之类），agent 会照着写出一张坏图 ——
+ * 而这类错误**没有任何运行时兜底会报出来**，只会在用户那里表现为「工作流莫名其妙不跑」。
+ *
+ * ## 怎么避免误报
+ *
+ * 只认「`x.y` 且 `x` 是 `known-node-types.json` 里出现过的命名空间」的记号：
+ * - `image.toPrompt` → `image` 是命名空间 → 必须存在
+ * - `cover.png` → `cover` 不是命名空间 → 不管（否则图片文件名全会误报）
+ * - `references/ports.md` → 含 `/`，不匹配 → 不管
+ */
+export function nodeTypeNamespaces(known) {
+  const namespaces = new Set()
+  for (const typeId of known ?? []) {
+    const dot = typeId.indexOf('.')
+    if (dot > 0) namespaces.add(typeId.slice(0, dot))
+  }
+  return namespaces
+}
+
+/** 抽出正文里反引号包裹的 `x.y` 记号（只看代码记号，避免正文叙述里的点号误伤） */
+export function codeSpanTokens(text) {
+  const tokens = []
+  for (const match of text.matchAll(/`([^`\n]+)`/g)) tokens.push(match[1].trim())
+  return tokens
+}
+
+/**
+ * 返回技能正文里**不存在的节点类型**清单（空 = 通过）。
+ * `planTypeIds` 是本工作流实际用到的类型，一并放行（白名单可能落后于应用）。
+ */
+export function unknownNodeTypeMentions({ texts, planTypeIds = [], known }) {
+  const allowed = new Set([...(known ?? []), ...planTypeIds])
+  const namespaces = nodeTypeNamespaces(known)
+  const unknown = new Set()
+  for (const text of texts) {
+    for (const token of codeSpanTokens(text)) {
+      if (!/^[a-z][a-zA-Z0-9]*\.[a-zA-Z0-9.]+$/.test(token)) continue
+      const namespace = token.slice(0, token.indexOf('.'))
+      if (!namespaces.has(namespace)) continue
+      if (!allowed.has(token)) unknown.add(token)
+    }
+  }
+  return [...unknown].sort()
+}
+
+/**
  * 读取并校验 `workflows/<id>/skill/`（不存在则返回 `skill: null`，表示该工作流不带技能）。
  *
  * 命名空间是硬要求：内置技能是**扁平 `<kebab-id>.md`**，与市场技能包落在**同一个 dsh 根、
  * 同一个 rank**，直接同名会冲突。因此强制 `name === 'wf-' + <工作流 id>`。
  */
-export function readSkillBundle(dir, dirName, bundle) {
+export function readSkillBundle(dir, dirName, bundle, known) {
   const skillDir = join(dir, 'skill')
   let present = false
   try {
@@ -232,6 +283,26 @@ export function readSkillBundle(dir, dirName, bundle) {
   }
   if (!files.some((file) => file.path === 'SKILL.md')) {
     push('文件清单里缺少 SKILL.md')
+  }
+
+  /**
+   * 正文里提到的节点类型必须真实存在。
+   * 只查 `.md`（技能正文就是它），且用命名空间过滤避免把文件名当类型。
+   */
+  const planTypeIds = (bundle?.plan?.nodes ?? [])
+    .map((node) => node?.typeId)
+    .filter((typeId) => typeof typeId === 'string')
+  const texts = []
+  for (const file of files) {
+    if (!file.path.endsWith('.md')) continue
+    try {
+      texts.push(readFileSync(join(skillDir, file.path), 'utf8'))
+    } catch {
+      errors.push(`${dirName}: 技能 无法读取 ${file.path}`)
+    }
+  }
+  for (const typeId of unknownNodeTypeMentions({ texts, planTypeIds, known })) {
+    push(`提到了不存在的节点类型 ${typeId}（agent 会照着它建出坏图，请核对）`)
   }
 
   const hasScripts = files.some((file) => file.path.startsWith('scripts/'))
@@ -383,7 +454,7 @@ export function validateAll() {
     const dirErrors = validateWorkflow({ dirName, bundle, coverBytes, known })
     errors.push(...dirErrors)
     // 技能包单独校验（不存在就是不带技能，属正常）
-    const skillResult = readSkillBundle(dir, dirName, bundle)
+    const skillResult = readSkillBundle(dir, dirName, bundle, known)
     errors.push(...skillResult.errors)
     if (dirErrors.length === 0 && skillResult.errors.length === 0) {
       entries.push(entryFromBundle(bundle, dir, coverName, skillResult.skill))

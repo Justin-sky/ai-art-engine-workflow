@@ -104,6 +104,11 @@ workflow-version: 1.0.0       # 可选；写了就必须与 workflow.json 的 ve
 | 只允许 `references/` `scripts/` `assets/` 子目录 | 其它目录不会被客户端安装，写了等于没写 |
 | 单文件 ≤ 128KB，整包 ≤ 512KB，文件数 ≤ 40 | 客户端逐个下载，不能没有天花板 |
 | 不允许符号链接 | 避免技能包指向仓库外 |
+| 正文里提到的节点类型必须真实存在 | 技能是写给 agent 的操作手册，它会照着里面的 `typeId` 去建图；编一个不存在的类型，agent 就会写出一张坏图，而且**运行时没有任何兜底会报出来** |
+
+最后一条只检查「反引号包裹的 `x.y` 记号，且 `x` 是已知节点命名空间」——所以 `cover.png`、
+`references/ports.md`、`SKILL.md` 这类写法不会被误判。允许用到的类型以
+`scripts/known-node-types.json`（由维护者更新）+ 本工作流 `plan` 里实际出现的类型为准。
 
 ### `scripts/` 现在会怎样
 
@@ -127,7 +132,8 @@ node --test                   # 校验器自身的单测
 
 它会检查：id 形态、必填字段、semver、分类枚举、`plan` 结构、`edges` 悬空、
 `requires` 与 `plan` 一致性、未知节点类型、封面存在与体积，以及**技能包**的
-frontmatter、`wf-` 前缀、子目录白名单、体积上限与 `workflow` 绑定。
+frontmatter、`wf-` 前缀、子目录白名单、体积上限、`workflow` 绑定，与正文里提到的
+节点类型是否真实存在。
 
 `index.json` **不要手改** —— CI 会在合并后自动重建。
 

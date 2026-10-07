@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T06:58:18.942Z",
+  "generatedAt": "2026-10-07T07:26:31.193Z",
   "source": {
     "repo": "https://github.com/Justin-sky/ai-art-engine-workflow",
     "ref": "main"
@@ -29,7 +29,24 @@
       },
       "nodeCount": 3,
       "edgeCount": 1,
-      "sizeBytes": 1782
+      "sizeBytes": 1782,
+      "skill": {
+        "name": "wf-anim2d-gif",
+        "description": "用「2D 帧动画」工作流把一张动作序列图（sprite sheet）切成逐帧 PNG 并合成为 GIF 动图。当用户要角色行走/待机/攻击等帧动画、想要 GIF 或逐帧图、或已有一张分格序列图要拆帧时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 4969
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 5148
+          }
+        ],
+        "sizeBytes": 10117
+      }
     },
     {
       "id": "character-sheet",
@@ -54,7 +71,20 @@
       },
       "nodeCount": 5,
       "edgeCount": 3,
-      "sizeBytes": 1855
+      "sizeBytes": 1855,
+      "skill": {
+        "name": "wf-character-sheet",
+        "description": "用「角色设定」工作流把一段人设文案变成三张立绘（正面 / 侧面 / 半身表情变体）。当用户要角色三视图、立绘、人设图、表情差分，或先定角色形象再往下做分镜 / 视频时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 6310
+          }
+        ],
+        "sizeBytes": 6310
+      }
     },
     {
       "id": "comic-publish",
@@ -80,7 +110,24 @@
       },
       "nodeCount": 6,
       "edgeCount": 6,
-      "sizeBytes": 2609
+      "sizeBytes": 2609,
+      "skill": {
+        "name": "wf-comic-publish",
+        "description": "用「漫画出版」工作流把一段剧本变成一张多格漫画页（分镜图 ×3 → 漫画页编辑器排版 → PNG 成片）。当用户要做漫画页 / 分镜连页 / 带台词气泡的一页成图时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 4739
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 5133
+          }
+        ],
+        "sizeBytes": 9872
+      }
     },
     {
       "id": "course-narrate",
@@ -108,7 +155,24 @@
       },
       "nodeCount": 6,
       "edgeCount": 6,
-      "sizeBytes": 2856
+      "sizeBytes": 2856,
+      "skill": {
+        "name": "wf-course-narrate",
+        "description": "用「知识口播」工作流把一份讲稿做成一镜到底的真人感口播成片：讲稿 → 主讲人形象 → 口播视频 + 配音 → 口型同步。当用户要做知识/课程口播、讲解视频、单人对镜说话的视频时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 5944
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 6611
+          }
+        ],
+        "sizeBytes": 12555
+      }
     },
     {
       "id": "director-previz",
@@ -136,7 +200,24 @@
       },
       "nodeCount": 6,
       "edgeCount": 5,
-      "sizeBytes": 2597
+      "sizeBytes": 2597,
+      "skill": {
+        "name": "wf-director-previz",
+        "description": "用「3D导演台预演」工作流先在 3D 导演台里搭景、摆机位、截站位图锁构图，再据此生成预演成片。当用户要做镜头预演、previz、构图推演、或想在出片前把景别与站位定死时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 6869
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 7700
+          }
+        ],
+        "sizeBytes": 14569
+      }
     },
     {
       "id": "ecom-ad-deep",
@@ -163,7 +244,24 @@
       },
       "nodeCount": 6,
       "edgeCount": 4,
-      "sizeBytes": 2277
+      "sizeBytes": 2277,
+      "skill": {
+        "name": "wf-ecom-ad-deep",
+        "description": "用「电商带货」工作流把产品卖点做成一批可 A/B 对比的电商广告图（主视觉 + 使用场景 → 变体矩阵批量出图 → 主视觉图层分离交付 PSD/PNG）。当用户要电商主图/详情页素材、要多版本素材做投放对比、或要求把主视觉拆层给设计改字时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ad-variants.md",
+            "sizeBytes": 7104
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 8873
+          }
+        ],
+        "sizeBytes": 15977
+      }
     },
     {
       "id": "game-icons",
@@ -190,7 +288,24 @@
       },
       "nodeCount": 14,
       "edgeCount": 15,
-      "sizeBytes": 7980
+      "sizeBytes": 7980,
+      "skill": {
+        "name": "wf-game-icons",
+        "description": "用「游戏图标包」工作流按名单批量产出游戏图标：三类名单各出一张 3×3 整版表 → 逐格裁切 → 键控透明打包成统一画布 PNG + 清单。当用户要一套技能/道具/状态图标、要透明底图标打包交付、或要按名单命名导出图标时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/grid-and-pack.md",
+            "sizeBytes": 8436
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 10378
+          }
+        ],
+        "sizeBytes": 18814
+      }
     },
     {
       "id": "game-ua-video",
@@ -216,7 +331,24 @@
       },
       "nodeCount": 4,
       "edgeCount": 2,
-      "sizeBytes": 1685
+      "sizeBytes": 1685,
+      "skill": {
+        "name": "wf-game-ua-video",
+        "description": "用「游戏买量」工作流把一段游戏卖点文案变成竖屏买量短视频（卖点文案 → 关键分镜图 → 15 秒视频）。当用户要做游戏投放素材、买量广告、手游买量短视频时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 5257
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 5383
+          }
+        ],
+        "sizeBytes": 10640
+      }
     },
     {
       "id": "game-ui",
@@ -242,7 +374,24 @@
       },
       "nodeCount": 4,
       "edgeCount": 2,
-      "sizeBytes": 1674
+      "sizeBytes": 1674,
+      "skill": {
+        "name": "wf-game-ui",
+        "description": "用「游戏UI界面」工作流把一段游戏系统需求变成系统策划案 + 逐屏 UI 界面图（每屏双轨：带字版 + 空字底图）。当用户要做游戏界面/UI 素材、背包/任务/公会的界面设计、或要把策划案拆成一屏屏 UI 图时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 6238
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 6819
+          }
+        ],
+        "sizeBytes": 13057
+      }
     },
     {
       "id": "game3d-asset",
@@ -270,7 +419,24 @@
       },
       "nodeCount": 7,
       "edgeCount": 5,
-      "sizeBytes": 2931
+      "sizeBytes": 2931,
+      "skill": {
+        "name": "wf-game3d-asset",
+        "description": "用「游戏3D资产」工作流把一段资产设定做成 3D 模型预演：文生 3D 模型 → 进 3D 导演台摆机位 → 截站位图 → 出资产展示视频。当用户要游戏角色 / 道具的 3D 资产、旋转展示、或要进导演台预演时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 5630
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 8901
+          }
+        ],
+        "sizeBytes": 14531
+      }
     },
     {
       "id": "product-ad",
@@ -295,7 +461,24 @@
       },
       "nodeCount": 4,
       "edgeCount": 3,
-      "sizeBytes": 1638
+      "sizeBytes": 1638,
+      "skill": {
+        "name": "wf-product-ad",
+        "description": "用「产品广告」工作流把卖点文案变成产品主视觉图 + 使用场景图 + 一条短视频。当用户要做产品广告、商品主图/场景图、产品宣传短视频时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 5710
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 5688
+          }
+        ],
+        "sizeBytes": 11398
+      }
     },
     {
       "id": "short-drama",
@@ -324,7 +507,28 @@
       },
       "nodeCount": 137,
       "edgeCount": 191,
-      "sizeBytes": 94275
+      "sizeBytes": 94275,
+      "skill": {
+        "name": "wf-short-drama",
+        "description": "用「短剧分镜」把一集剧本做成 36 条动态视频（剧本→节拍拆解表→9宫格分镜表→9 格锚点图→4宫格动态分镜 9×4→36 条动态提示词→36 条视频，含 4 级导演审核）。当用户要做一集短剧/竖屏剧的完整分镜与成片素材、并接受 36 次视频模型调用时加载；只要 9 条视频请改用 wf-short-drama9。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/cells.md",
+            "sizeBytes": 4146
+          },
+          {
+            "path": "references/stages.md",
+            "sizeBytes": 7344
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 13120
+          }
+        ],
+        "sizeBytes": 24610
+      }
     },
     {
       "id": "short-drama9",
@@ -353,7 +557,24 @@
       },
       "nodeCount": 36,
       "edgeCount": 51,
-      "sizeBytes": 36021
+      "sizeBytes": 36021,
+      "skill": {
+        "name": "wf-short-drama9",
+        "description": "用「短剧分镜·9格直出」把一集剧本做成 9 条动态视频：剧本→节拍拆解表→9宫格分镜表→1 张 9宫格拼图→9 格锚点图→动画师 9 条动态提示词→9 条视频（每条 3~15 秒、吃掉一段完整剧情），含 3 级导演审核。当用户想要最省调用次数的一集短剧成片素材、或想先看效果时加载；要 36 条细密镜头请改用 wf-short-drama。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/pipeline.md",
+            "sizeBytes": 8821
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 12429
+          }
+        ],
+        "sizeBytes": 21250
+      }
     },
     {
       "id": "storyboard-video",
@@ -379,7 +600,20 @@
       },
       "nodeCount": 6,
       "edgeCount": 4,
-      "sizeBytes": 2099
+      "sizeBytes": 2099,
+      "skill": {
+        "name": "wf-storyboard-video",
+        "description": "用「分镜出片」工作流把一份镜头列表变成 3 张分镜图 + 1 段高潮镜头短视频，并可经成片时间线合成 MP4。当用户要分镜图、故事板、把镜头脚本画出来、或给某个镜头出一小段视频时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 7420
+          }
+        ],
+        "sizeBytes": 7420
+      }
     },
     {
       "id": "world-model",
@@ -417,14 +651,14 @@
         "files": [
           {
             "path": "references/ports.md",
-            "sizeBytes": 2607
+            "sizeBytes": 2888
           },
           {
             "path": "SKILL.md",
             "sizeBytes": 3504
           }
         ],
-        "sizeBytes": 6111
+        "sizeBytes": 6392
       }
     }
   ]

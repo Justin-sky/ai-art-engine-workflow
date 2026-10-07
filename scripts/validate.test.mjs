@@ -17,9 +17,11 @@ import { after, describe, it } from 'node:test'
 
 import {
   LIMITS,
+  entryFromBundle,
   parseSkillFrontmatter,
   readSkillBundle,
   readJson,
+  unknownNodeTypeMentions,
   validateAll
 } from './validate.mjs'
 
@@ -66,6 +68,49 @@ function makeWorkflow({ id = 'demo', version = '1.0.0', skillFiles = null } = {}
 
 const FRONTMATTER = (extra = '') =>
   `---\nname: wf-demo\ndescription: 演示技能\nworkflow: demo\n${extra}---\n\n# Demo\n\n正文。\n`
+
+describe('正文里的节点类型必须真实存在', () => {
+  const known = ['image.toPrompt', 'asset.image', 'media.bundle', 'spatialWorld.export']
+  const check = (text, planTypeIds = []) =>
+    unknownNodeTypeMentions({ texts: [text], planTypeIds, known })
+
+  it('真实类型放行', () => {
+    assert.deepEqual(check('用 `image.toPrompt` 出提示词'), [])
+  })
+
+  it('编造的节点类型被拦（agent 会照着它建出坏图）', () => {
+    assert.deepEqual(check('用 `asset.pic` 出图'), ['asset.pic'])
+  })
+
+  it('文件名不误报：前缀不是节点命名空间就不查', () => {
+    assert.deepEqual(check('见 `cover.png`'), [])
+    assert.deepEqual(check('见 `README.md`'), [])
+  })
+
+  it('路径不误报（含斜杠不匹配记号形状）', () => {
+    assert.deepEqual(check('见 `references/ports.md`'), [])
+  })
+
+  it('大写开头的记号不当作类型', () => {
+    assert.deepEqual(check('读 `SKILL.md`'), [])
+  })
+
+  it('白名单落后时，本工作流实际用到的类型仍然放行', () => {
+    assert.deepEqual(check('用 `foo.bar`', ['foo.bar']), [])
+  })
+
+  it('多个编造类型去重后排序返回', () => {
+    assert.deepEqual(check('`asset.z` 与 `asset.a` 与 `asset.z`'), ['asset.a', 'asset.z'])
+  })
+
+  it('真实仓库的技能正文不含不存在的节点类型', () => {
+    const { errors } = validateAll()
+    assert.deepEqual(
+      errors.filter((error) => error.includes('不存在的节点类型')),
+      []
+    )
+  })
+})
 
 describe('不带技能包的工作流', () => {
   it('不产生 skill 段（向后兼容）', () => {
@@ -233,9 +278,16 @@ describe('真实仓库', () => {
     }
   })
 
-  it('不带技能的工作流在索引里没有 skill 字段', () => {
-    const { entries } = validateAll()
-    const withoutSkill = entries.filter((entry) => !entry.skill)
-    assert.ok(withoutSkill.length > 0, '应当仍有不带技能的工作流（向后兼容）')
+  it('不带技能的工作流**在索引里没有 skill 字段**（向后兼容）', () => {
+    /*
+      这里刻意用临时目录造一个不带技能的工作流，而不是去真实仓库里找一个 ——
+      真实仓库现在 15 条全带技能了，用内容做断言等于把「技能是可选」这条约定
+      绑死在当前内容上：将来有人新增一条不带技能的工作流，测试就会假失败。
+    */
+    const dir = makeWorkflow({ id: 'skillless' })
+    const bundle = readJson(join(dir, 'workflow.json'))
+    assert.deepEqual(readSkillBundle(dir, 'skillless', bundle).errors, [])
+    const entry = entryFromBundle(bundle, dir, 'cover.png', null)
+    assert.equal('skill' in entry, false, '不带技能时不应出现 skill 字段')
   })
 })

@@ -18,9 +18,11 @@
 
 | 参数 | 说明 |
 |---|---|
-| `spatialWorldSeed` | 随机种子；固定它便于复现 |
-| `spatialWorldPanoMode` | 全景模式，默认 `auto` |
-| `spatialWorldDisableRecaption` | 关闭重描述，默认 `false` |
+| `spatialWorldSeed` | 随机种子，默认 `0`；**`0` 表示不传**，交给上游随机 |
+| `spatialWorldPanoMode` | 单图参考的全景判定（官方 `is_pano`）：`auto`（默认，自动识别）/ `always`（强制）/ `never`（关闭） |
+| `spatialWorldDisableRecaption` | `true` 时关闭上游 recaption，指令原文直送，默认 `false` |
+| `generateModel` | 覆盖世界生成所用的模型 |
+| `generateProviderInstanceId` | 提供商实例 id |
 
 ## spatialWorld.export（世界导出）
 
