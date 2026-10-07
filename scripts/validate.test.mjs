@@ -138,7 +138,7 @@ describe('合法技能包', () => {
     assert.equal(skill.sizeBytes, skill.files.reduce((sum, f) => sum + f.sizeBytes, 0))
   })
 
-  it('含 scripts/ 时标记 hasScripts（仓库允许提交，客户端决定装不装）', () => {
+  it('含 scripts/ 时标记 hasScripts（仓库允许提交，客户端逐次征求同意后才安装）', () => {
     const dir = makeWorkflow({
       skillFiles: { 'SKILL.md': FRONTMATTER(), 'scripts/run.mjs': 'export {}\n' }
     })

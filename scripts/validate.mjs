@@ -41,9 +41,11 @@ export const LIMITS = {
 /**
  * 技能包允许的子目录。
  *
- * `scripts/` 与 `assets/` 是**为将来预留**：本轮客户端只安装 `SKILL.md` 与 `references/`
- * （脚本要跑就得先有同意流，见 CONTRIBUTING）。仓库侧仍允许提交，索引里标 `hasScripts`，
- * 客户端据此提示用户 —— 这样"仓库支持"与"客户端肯装"是两件事，不会互相卡住。
+ * 三个目录都会被客户端安装，区别只在**同意流**：`SKILL.md` / `references/` / `assets/`
+ * 随工作流一起落盘，而 `scripts/` 是 agent 会在本机执行起来的代码，客户端**每次安装**都要
+ * 单独征求用户同意（拒绝则只装说明书与 references，工作流照常可用）。仓库侧一律接受提交，
+ * 并在索引里标 `hasScripts`，客户端据此在卡片上显示「含技能 · 含脚本」并弹出确认框 ——
+ * 这样"仓库支持"与"客户端肯装"是两件事，不会互相卡住。详见 CONTRIBUTING。
  */
 export const SKILL_SUBDIRS = ['references', 'scripts', 'assets']
 
