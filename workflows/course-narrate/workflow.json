@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "id": "course-narrate",
+  "title": "知识口播",
+  "titleEn": "Knowledge talking-head",
+  "summary": "讲稿 → 配音 + 口播视频 → 口型同步",
+  "category": "comic",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.video",
+      "asset.voice",
+      "note.text",
+      "play.script",
+      "video.lipSync"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "知识课程口播",
+    "nodes": [
+      {
+        "key": "script",
+        "typeId": "play.script",
+        "title": "课程讲稿",
+        "params": {
+          "text": "（分段写讲稿：开场钩子、知识点、总结与引导关注）"
+        }
+      },
+      {
+        "key": "portrait",
+        "typeId": "asset.image",
+        "title": "主讲人形象",
+        "params": {
+          "generateInstruction": "知识博主半身像，正面对镜头，简洁背景，亲和气质"
+        }
+      },
+      {
+        "key": "voice",
+        "typeId": "asset.voice",
+        "title": "口播配音",
+        "params": {
+          "generateInstruction": "亲和清晰的知识口播音色，语速平稳，按讲稿分段朗读"
+        }
+      },
+      {
+        "key": "talking",
+        "typeId": "asset.video",
+        "title": "口播视频",
+        "params": {
+          "generateInstruction": "主讲人对镜头讲话，半身构图，口型自然",
+          "generateDuration": 10,
+          "generateAspectRatio": "9:16"
+        }
+      },
+      {
+        "key": "lipSync",
+        "typeId": "video.lipSync",
+        "title": "口型同步"
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "流程：先运行「主讲人形象」与「课程讲稿」→ 用形象生成「口播视频」（视频音量建议静音）→ 运行「口播配音」→ 把口播视频与配音接进「口型同步」运行，输出对口型的成片。配音不满意可只重跑配音，无需重做视频。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "script",
+        "to": "portrait"
+      },
+      {
+        "from": "script",
+        "to": "voice"
+      },
+      {
+        "from": "script",
+        "to": "talking"
+      },
+      {
+        "from": "portrait",
+        "to": "talking",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "talking",
+        "to": "lipSync",
+        "fromPort": "out",
+        "toPort": "in-video"
+      },
+      {
+        "from": "voice",
+        "to": "lipSync",
+        "fromPort": "out",
+        "toPort": "in-voice"
+      }
+    ]
+  }
+}

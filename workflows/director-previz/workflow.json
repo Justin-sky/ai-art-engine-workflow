@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "id": "director-previz",
+  "title": "3D导演台预演",
+  "titleEn": "3D director previz",
+  "summary": "全景参考 → 几何体搭景 → 站位图锁构图",
+  "category": "film",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.motion",
+      "asset.video",
+      "image.select",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "3D 导演台预演",
+    "nodes": [
+      {
+        "key": "brief",
+        "typeId": "play.script",
+        "title": "分镜与场景需求",
+        "params": {
+          "text": "（描述场景氛围、镜头景别与构图意图）"
+        }
+      },
+      {
+        "key": "pano",
+        "typeId": "asset.image",
+        "title": "全景氛围参考",
+        "params": {
+          "generateInstruction": "生成场景 360 全景氛围图，透视与光线方向明确"
+        }
+      },
+      {
+        "key": "motion",
+        "typeId": "asset.motion",
+        "title": "导演台预演"
+      },
+      {
+        "key": "select",
+        "typeId": "image.select",
+        "title": "选站位图"
+      },
+      {
+        "key": "video",
+        "typeId": "asset.video",
+        "title": "预演成片",
+        "params": {
+          "generateInstruction": "按站位图构图生成预演视频，保持分镜景别",
+          "generateDuration": 8
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "流程：运行「全景氛围参考」→ 连到「导演台预演」的全景口，双击进入舞台自动设为背景 → 用基础几何体手动搭景、摆机位、截站位图 → 「选站位图」后生成预演成片，构图提前锁死。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "brief",
+        "to": "pano"
+      },
+      {
+        "from": "pano",
+        "to": "motion",
+        "fromPort": "out",
+        "toPort": "in-panorama"
+      },
+      {
+        "from": "motion",
+        "to": "select",
+        "fromPort": "out-shots",
+        "toPort": "in"
+      },
+      {
+        "from": "select",
+        "to": "video",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "brief",
+        "to": "video",
+        "fromPort": "out",
+        "toPort": "in-text"
+      }
+    ]
+  }
+}

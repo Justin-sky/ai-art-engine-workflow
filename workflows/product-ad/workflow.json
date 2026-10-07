@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "id": "product-ad",
+  "title": "产品广告",
+  "titleEn": "Product ad",
+  "summary": "卖点文案 + 产品图 + 短视频",
+  "category": "ad",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.video",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "产品广告",
+    "nodes": [
+      {
+        "key": "copy",
+        "typeId": "play.script",
+        "title": "卖点文案",
+        "params": {
+          "text": "（产品名、核心卖点、CTA）"
+        }
+      },
+      {
+        "key": "hero",
+        "typeId": "asset.image",
+        "title": "产品主视觉",
+        "params": {
+          "generateInstruction": "产品英雄图，突出质感与卖点"
+        }
+      },
+      {
+        "key": "scene",
+        "typeId": "asset.image",
+        "title": "使用场景图",
+        "params": {
+          "generateInstruction": "产品真实使用场景"
+        }
+      },
+      {
+        "key": "video",
+        "typeId": "asset.video",
+        "title": "广告短视频",
+        "params": {
+          "generateInstruction": "产品特写与使用场景结合的短广告",
+          "generateDuration": 10
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "copy",
+        "to": "hero"
+      },
+      {
+        "from": "copy",
+        "to": "scene"
+      },
+      {
+        "from": "hero",
+        "to": "video"
+      }
+    ]
+  }
+}

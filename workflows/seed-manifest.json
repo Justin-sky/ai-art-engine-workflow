@@ -1,0 +1,137 @@
+[
+  {
+    "id": "storyboard-video",
+    "presetId": "storyboardVideo",
+    "category": "film",
+    "titleZh": "分镜出片",
+    "titleEn": "Storyboard to film",
+    "summaryZh": "分镜图串成视频",
+    "summaryEn": "Shots to video"
+  },
+  {
+    "id": "director-previz",
+    "presetId": "directorPreviz",
+    "category": "film",
+    "titleZh": "3D导演台预演",
+    "titleEn": "3D director previz",
+    "summaryZh": "全景参考 → 几何体搭景 → 站位图锁构图",
+    "summaryEn": "Panorama reference → primitive stage → shots lock framing"
+  },
+  {
+    "id": "short-drama",
+    "presetId": "shortDrama",
+    "category": "film",
+    "titleZh": "短剧分镜",
+    "titleEn": "Short drama",
+    "summaryZh": "剧本→节拍→9宫格→4宫格→36动态视频（Agent 流水线）",
+    "summaryEn": "Script → beats → 9-grid → 4-grid → 36 motion videos (agent pipeline)"
+  },
+  {
+    "id": "short-drama9",
+    "presetId": "shortDrama9",
+    "category": "film",
+    "titleZh": "短剧分镜·9格直出",
+    "titleEn": "Short drama · 9 direct",
+    "summaryZh": "剧本→节拍→9宫格→动画师9条动态提示词→9条视频",
+    "summaryEn": "Script → beats → 9-grid → animator 9 motion prompts → 9 videos"
+  },
+  {
+    "id": "product-ad",
+    "presetId": "productAd",
+    "category": "ad",
+    "titleZh": "产品广告",
+    "titleEn": "Product ad",
+    "summaryZh": "卖点文案 + 产品图 + 短视频",
+    "summaryEn": "Copy + hero art + short video"
+  },
+  {
+    "id": "ecom-ad-deep",
+    "presetId": "ecomAdDeep",
+    "category": "ad",
+    "titleZh": "电商带货",
+    "titleEn": "E-commerce ads",
+    "summaryZh": "主视觉 → 变体矩阵 → 图层分离",
+    "summaryEn": "Hero image → ad variants → layer split"
+  },
+  {
+    "id": "game-ua-video",
+    "presetId": "gameUaVideo",
+    "category": "ad",
+    "titleZh": "游戏买量",
+    "titleEn": "Game UA",
+    "summaryZh": "剧本 → 分镜图 → 视频",
+    "summaryEn": "Script → keyframes → video"
+  },
+  {
+    "id": "game-ui",
+    "presetId": "gameUi",
+    "category": "game",
+    "titleZh": "游戏UI界面",
+    "titleEn": "Game UI screens",
+    "summaryZh": "策划案 → UI拆分 → UI生成",
+    "summaryEn": "System design → UI split → UI gen"
+  },
+  {
+    "id": "game-icons",
+    "presetId": "gameIcons",
+    "category": "game",
+    "titleZh": "游戏图标包",
+    "titleEn": "Game icon pack",
+    "summaryZh": "名单 ×3 → 3×3 整版表 ×3 → 切格 / 透明打包",
+    "summaryEn": "Name lists ×3 → 3×3 icon sheets ×3 → split / transparent pack"
+  },
+  {
+    "id": "game3d-asset",
+    "presetId": "game3dAsset",
+    "category": "game",
+    "titleZh": "游戏3D资产",
+    "titleEn": "Game 3D assets",
+    "summaryZh": "文生3D模型 → 导演台 → 站位图 → 展示视频",
+    "summaryEn": "Text-to-3D → director deck → shots → showcase video"
+  },
+  {
+    "id": "anim2d-gif",
+    "presetId": "anim2dGif",
+    "category": "game",
+    "titleZh": "2D 帧动画",
+    "titleEn": "2D frame anim",
+    "summaryZh": "序列图 → 逐帧 PNG + GIF 动图",
+    "summaryEn": "Sprite sheet → per-frame PNGs + GIF"
+  },
+  {
+    "id": "character-sheet",
+    "presetId": "characterSheet",
+    "category": "character",
+    "titleZh": "角色设定",
+    "titleEn": "Character sheet",
+    "summaryZh": "人设文案 + 多视角立绘",
+    "summaryEn": "Bio + multi-angle art"
+  },
+  {
+    "id": "world-model",
+    "presetId": "worldModel",
+    "category": "character",
+    "titleZh": "世界模型",
+    "titleEn": "World model",
+    "summaryZh": "空间世界生成 → 空间世界导出 → 3D 导演台",
+    "summaryEn": "Spatial world generation → world export → 3D director stage"
+  },
+  {
+    "id": "comic-publish",
+    "presetId": "comicPublish",
+    "category": "comic",
+    "titleZh": "漫画出版",
+    "titleEn": "Comic publishing",
+    "summaryZh": "剧本 → 分镜图 ×3 → 漫画页排版导出",
+    "summaryEn": "Script → 3 panels → comic page layout & export"
+  },
+  {
+    "id": "course-narrate",
+    "presetId": "courseNarrate",
+    "category": "comic",
+    "titleZh": "知识口播",
+    "titleEn": "Knowledge talking-head",
+    "summaryZh": "讲稿 → 配音 + 口播视频 → 口型同步",
+    "summaryEn": "Lecture script → voice + talking video → lip sync"
+  }
+]

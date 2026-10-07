@@ -1,0 +1,736 @@
+{
+  "schemaVersion": 1,
+  "id": "short-drama9",
+  "title": "短剧分镜·9格直出",
+  "titleEn": "Short drama · 9 direct",
+  "summary": "剧本→节拍→9宫格→动画师9条动态提示词→9条视频",
+  "category": "film",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.video",
+      "episode.cellSelect",
+      "image.gridSplit",
+      "note.text",
+      "play.script",
+      "prompt.optimize"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "短剧分镜（9宫格直出）",
+    "nodes": [
+      {
+        "key": "script",
+        "typeId": "play.script",
+        "title": "剧本",
+        "params": {
+          "text": "（在此填写单集剧本，或用「短剧创作框架」先生成）"
+        }
+      },
+      {
+        "key": "breakdown",
+        "typeId": "prompt.optimize",
+        "title": "Beat Breakdown Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "breakdown",
+          "skillId": "episode.breakdown",
+          "generateSystemPrompt": "你是拥有 10 年经验的分镜师兼摄影指导。核心心法：永远先想画面，再想机位，依靠“强调重点、弱化非重点”引导观众情绪。\n\n任务：把上游剧本拆解为「节拍拆解表」，严格输出 Markdown 表格，仅含表头与数据行：\n| 节拍编号 | 事件摘要 | 观众获得 (信息/情绪) | 情绪强度 (1-10) | 关键锚点 (是/否) |\n|---------|---------|-------------------|----------------|----------------|\n\n硬性要求：\n1. 完整覆盖剧本“起承转合”叙事弧线，剔除冗余信息。\n2. 单集总节拍控制在 12~28 条（可按篇幅 ±2，短剧一般约 20~25 条），按“起承转合”合并同类动作，禁止逐句逐动作拆条。\n3. 从全部节拍中选出 9 个关键锚点（可按篇幅 ±2，最多 11 个）准确卡在转折点上；每个节拍至多标 1 个“是”，锚点编号互不重复。\n4. 情绪强度符合从平静到高潮的递进规律。\n5. 只输出表格，不要解释、不要 JSON。",
+          "generateInstruction": "请将上游剧本拆解为节拍拆解表，严格按系统提示词规定的表格格式输出。"
+        }
+      },
+      {
+        "key": "review1",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · Beat Breakdown Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "breakdown",
+          "skillId": "episode.review.breakdown",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：节拍拆解表。硬性检查清单：\n- 数量与格式：总节拍 12~28 条；Markdown 表头与字段齐全。\n- 覆盖完整性：逐项对照剧本，起承转合完整，不得丢失关键事件、对白或转折。\n- 锚点质量：关键锚点数量为 9（可按篇幅 ±2，但必须卡在转折点）；锚点编号互不重复。\n- 情绪曲线：情绪强度有递进、高潮和回落，不能全程平铺。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为待审核的节拍拆解表。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "beatboard",
+        "typeId": "prompt.optimize",
+        "title": "9-Grid Storyboard Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "beatboard",
+          "skillId": "episode.beatboard",
+          "generateSystemPrompt": "你是拥有 10 年经验的分镜师兼摄影指导。核心心法：永远先想画面，再想机位，依靠“强调重点、弱化非重点”引导观众情绪。\n\n任务：基于上游「节拍拆解表」，为每场生成 9 个核心锚点的分镜提示词，严格输出：\n# 9宫格核心锚点\n## 格N [节拍ID: #N] - 标题\n- **景别与视角**: 景别 / 机位\n- **人物动作与表情**: 角色此刻的动作、姿态、表情、状态；服装/道具/武器如提及只写名称，不描述颜色/形态/材质\n- **场景与光影**: 场景只写名称（如：瓜摊），不描述场景外观；必须指明主光源方向（如：窗外冷色月光作为主顶光）\n- **构图与动线**: 疏密对比 / 空间纵深（前景、中景、后景）\n- **故事功能**: 该格承担的叙事作用\n\n硬性要求：\n1. 服装、道具、武器、场景一律只写名称（如：虎皮裙、金箍棒、算筹、瓜摊），不描述颜色/形态/材质等视觉细节；发型等外观细节由参考图提供，文字不描述以免干扰生图；9 格外观以参考图为准保持一致。\n2. 同场景主光源方向恒定；人物站位稳定成 I / A / L 型，禁止越轴造成瞬移感。\n3. 景别逻辑：禁止无意义的“拉抽屉”与同景别构图重复。\n4. 核心道具（如算筹）必须有特写或反应镜头强化其存在，但只写道具名称，不描述其外观。\n5. 先画面、后机位：先写画面内容与叙事重点，再选景别与机位。\n6. 严格按指令中注入的 9 个关键锚点生成：锚点1 对应 格1、锚点2 对应 格2，以此类推；每格 [节拍ID: #N] 的 N 为锚点序号 1~9，必须与格号一致，禁止使用原始节拍编号、禁止重复或自创。\n7. 若拆解表锚点不足 9 个，从其余节拍按顺序补齐到 9 格；若超过 9 个，只取前 9 个。\n8. 只输出清单，不要解释。",
+          "generateInstruction": "请基于上游节拍拆解表生成 9宫格分镜表（9 个核心锚点），严格按系统提示词规定的格式输出。"
+        }
+      },
+      {
+        "key": "review2",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · 9-Grid Storyboard Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "beatboard",
+          "skillId": "episode.review.beatboard",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：9宫格分镜表。硬性检查清单：\n- 结构与字段：9 格齐全，每格含景别/视角、人物动作与表情、场景与光影、构图与动线、故事功能。\n- 节拍映射：每格 [节拍ID: #N] 的 N 与格号一致，并与拆解表锚点一一对应。\n- 一致性：同角色服饰/发型/道具、场景与主光方向跨格稳定；禁止无动机换装或瞬移。\n- 镜头语法：景别无意义重复、同景别连续剪切、越轴、关键道具缺特写均视为问题。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为节拍拆解表，@3 为待审核的9宫格分镜表。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "img9grid",
+        "typeId": "asset.image",
+        "title": "9宫格拼图·锚点画布",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "beatboard",
+          "skillId": "episode.image.grid9",
+          "generateInstruction": "基于上游 9宫格分镜表生成一张 3×3 九宫格拼图画布：9 格按表内顺序依次对应 9 个核心锚点，人物服饰、主光方向、场景严格按表内描述保持绝对一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格1",
+        "params": {
+          "anchorCellIndex": 1,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格2",
+        "params": {
+          "anchorCellIndex": 2,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格3",
+        "params": {
+          "anchorCellIndex": 3,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "1-3"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格4",
+        "params": {
+          "anchorCellIndex": 4,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract5",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格5",
+        "params": {
+          "anchorCellIndex": 5,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract6",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格6",
+        "params": {
+          "anchorCellIndex": 6,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "2-3"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract7",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格7",
+        "params": {
+          "anchorCellIndex": 7,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "3-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract8",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格8",
+        "params": {
+          "anchorCellIndex": 8,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "3-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract9",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格9",
+        "params": {
+          "anchorCellIndex": 9,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "3-3"
+            ]
+          }
+        }
+      },
+      {
+        "key": "motion",
+        "typeId": "prompt.optimize",
+        "title": "Motion Prompt Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "motion",
+          "skillId": "episode.motion9",
+          "generateSystemPrompt": "你是视频导演兼动画指导。你的任务是把「完整剧本 + 9宫格分镜表」转化为 9 条可直接用于图生视频模型生成的动态提示词。\n\n每条提示词必须覆盖完整剧情区间：\n- 第1格：从剧本开头到关键帧1。\n- 第2格到倒数第2格：从上一格关键帧到本格关键帧之间的所有剧情、动作、台词、情绪转折，不得跳段、缩写或丢失剧本信息。\n- 最后一格（末端关键帧）：从上一格关键帧到本格关键帧，并必须继续覆盖本关键帧之后直至剧本结束的全部剩余节拍、对白与收束；禁止停在最后一个关键帧画面处截断。\n- 对白必须完整逐字保留；对白直接写进对应秒段的动作叙述中（用「说话人+语气：”台词“」），不要在结尾单独重复一份对白清单。该区间没有对白时写“无对白”。\n\n严格输出：\n# 图生视频动态指令\n## 镜头N [来源: 9宫格 格N]\n- **时长**: 单个整数秒数（3~15，按该段信息量选择，信息越多时长越长）\n- **一句话概述**: 主体是谁、在哪里、这一格要达成的可见结果\n- **时间轴剧情**:\n  - 0-X秒：画面、主体动作、镜头拍法、对白/声音\n  - X-Y秒：承接上一段，画面、主体动作、镜头拍法、对白/声音\n  - Y-Z秒：收束到本关键帧画面；画面、主体动作、镜头拍法、对白/声音（最后一格须在到达本关键帧后继续写到本集结束，不得停在关键帧）\n- **镜头运动**: 一个主要运动（推轨/摇镜/手持/固定等），写明方向与起止点\n- **环境/灯光**: 主光源方向 + 场景环境变化\n- **音频**: 环境声 / 指定音效 / 人声 / 静音（有对白时优先写“人声+环境声/音效”）\n- **全局锁定**: 保留首帧图的人物身份、服装、道具、发型、场景、主光方向与构图基调；服装/道具/发型等静态外观只写名称，外观细节以首帧参考图为准；全程无字幕、无背景音乐，仅保留指定人声/环境声。\n\n硬性要求：\n1. 每条时长必须在 3~15 秒，时间轴从 0 秒开始连续覆盖到该时长，不重叠、不留空。\n2. 每个时间区间必须写出“画面、动作、镜头、对白/声音”的变化，避免只写静态画面。\n3. 完整覆盖对应区间的剧本内容；最后一格必须吃掉末端关键帧之后的剩余剧情。禁止为缩短时长而删除对白、剧情或情绪转折。\n4. 一格优先按一镜到底处理：用连续的推、拉、摇、移、跟随或人物入画/出画描述变化；只有当该区间原本就包含明确分镜切换时，才写“切至/转场”，并写清切入的是什么景别与画面。\n5. 避免“史诗/绝美/8K”等空泛词，只写具体可见的动作、物件、光线、声音与结束状态。\n6. 只输出清单，不要解释。\n7. 服装、道具、武器、场景、发型等静态外观只写名称（如：棒球帽、机能夹克、金箍棒、西瓜摊），不写颜色/材质/形态，这些外观细节以首帧参考图为准；但动作引起的临时可见变化（出汗、脸红、青筋、衣料被风吹动、帽檐/头发摆动、油光反光、血迹污渍等）必须照实描述。",
+          "generateInstruction": "请基于【完整剧本】@1、【节拍拆解表】@2 与【9宫格分镜表】@3，为 9 个宫格各生成 1 条图生视频动态提示词，严格按系统提示词规定的格式输出。最后一格必须覆盖末端关键帧之后直至剧本结束的剩余节拍。"
+        }
+      },
+      {
+        "key": "review4",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · Motion Prompt Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "motion",
+          "episodeReviewVariant": "9",
+          "skillId": "episode.review.motion9",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：9宫格动态提示词表。硬性检查清单：\n- 数量与时长：9 条，时长 3~15 秒且时间轴从 0 连续覆盖到结尾，无空隙或重叠。\n- 覆盖完整性：逐段覆盖上一关键帧到本关键帧的剧情、动作、台词、情绪转折；最后一格必须覆盖末端关键帧之后直至剧本结束的剩余内容，不得在最后关键帧截断。\n- 台词保真：逐字保留台词与说话人，嵌在对应时间轴；缺台词或改写直接 FAIL。\n- 镜头与环境：主要镜头运动、主光方向和场景变化清楚；遵守无字幕、无背景音乐要求。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为节拍拆解表，@3 为9宫格分镜表，@4 为待审核的9宫格动态提示词表。最后一格必须覆盖末端关键帧之后的剩余节拍。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "cell1-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格1-1",
+        "params": {
+          "cellGroupIndex": 1,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video1-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格1-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "1-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell2-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格2-1",
+        "params": {
+          "cellGroupIndex": 2,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video2-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格2-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "2-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell3-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格3-1",
+        "params": {
+          "cellGroupIndex": 3,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video3-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格3-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "3-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell4-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格4-1",
+        "params": {
+          "cellGroupIndex": 4,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video4-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格4-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "4-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell5-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格5-1",
+        "params": {
+          "cellGroupIndex": 5,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video5-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格5-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "5-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell6-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格6-1",
+        "params": {
+          "cellGroupIndex": 6,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video6-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格6-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "6-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell7-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格7-1",
+        "params": {
+          "cellGroupIndex": 7,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video7-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格7-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "7-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell8-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格8-1",
+        "params": {
+          "cellGroupIndex": 8,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video8-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格8-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "8-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "cell9-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格9-1",
+        "params": {
+          "cellGroupIndex": 9,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video9-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格9-1",
+        "params": {
+          "skillId": "episode.video.grid9",
+          "generateInstruction": "基于参考首帧图与上游动态提示词生成图生视频：保留参考图中人物身份、服装、发型、场景、主光方向与构图基调，严格按动态提示词中的时间轴、镜头运动、主体动作、完整对白与环境音执行。",
+          "motionCellIndex": "9-1",
+          "generateDuration": 15
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "流水线说明",
+        "params": {
+          "text": "流程：剧本 → 节拍拆解表 → 9宫格分镜表 → 1 张 9宫格拼图 → 宫格提取 9 格锚点图 → 动画师·9宫格动态提示词表(9条，每条覆盖上一关键帧到本关键帧的完整剧情与对白，时长 3~15 秒) → 9 条动态视频（每条直接用对应 9宫格锚点图作首帧）。\n\n导演审核：review1（节拍）、review2（9宫格）、review4（9宫格动态提示词）输出 ## 结论: PASS / FAIL；FAIL 原因会自动写入 agent-state.json，重跑对应分镜师/动画师节点时自动附加原因。\n\n视频产出：单条按需 = 只运行某个 video 节点；一键全跑 = 批量运行全部 9 条 video 节点。命名规则：集-场-宫格。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "script",
+        "to": "breakdown"
+      },
+      {
+        "from": "script",
+        "to": "review1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "beatboard",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "script",
+        "to": "review2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "review2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "img9grid",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract5",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract6",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract7",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract8",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract9",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "script",
+        "to": "motion",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "motion",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "motion",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "script",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "motion",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "motion",
+        "to": "cell1-1"
+      },
+      {
+        "from": "gridExtract1",
+        "to": "video1-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell1-1",
+        "to": "video1-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell2-1"
+      },
+      {
+        "from": "gridExtract2",
+        "to": "video2-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell2-1",
+        "to": "video2-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell3-1"
+      },
+      {
+        "from": "gridExtract3",
+        "to": "video3-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell3-1",
+        "to": "video3-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell4-1"
+      },
+      {
+        "from": "gridExtract4",
+        "to": "video4-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell4-1",
+        "to": "video4-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell5-1"
+      },
+      {
+        "from": "gridExtract5",
+        "to": "video5-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell5-1",
+        "to": "video5-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell6-1"
+      },
+      {
+        "from": "gridExtract6",
+        "to": "video6-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell6-1",
+        "to": "video6-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell7-1"
+      },
+      {
+        "from": "gridExtract7",
+        "to": "video7-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell7-1",
+        "to": "video7-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell8-1"
+      },
+      {
+        "from": "gridExtract8",
+        "to": "video8-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell8-1",
+        "to": "video8-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell9-1"
+      },
+      {
+        "from": "gridExtract9",
+        "to": "video9-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell9-1",
+        "to": "video9-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      }
+    ]
+  }
+}

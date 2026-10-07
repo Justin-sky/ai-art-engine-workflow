@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "id": "storyboard-video",
+  "title": "分镜出片",
+  "titleEn": "Storyboard to film",
+  "summary": "分镜图串成视频",
+  "category": "film",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.video",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "分镜出片",
+    "nodes": [
+      {
+        "key": "shots",
+        "typeId": "play.script",
+        "title": "镜头列表",
+        "params": {
+          "text": "（按镜头列出画面说明与对白）"
+        }
+      },
+      {
+        "key": "board1",
+        "typeId": "asset.image",
+        "title": "分镜 1",
+        "params": {
+          "generateInstruction": "镜头 1 分镜图"
+        }
+      },
+      {
+        "key": "board2",
+        "typeId": "asset.image",
+        "title": "分镜 2",
+        "params": {
+          "generateInstruction": "镜头 2 分镜图"
+        }
+      },
+      {
+        "key": "board3",
+        "typeId": "asset.image",
+        "title": "分镜 3",
+        "params": {
+          "generateInstruction": "镜头 3 分镜图"
+        }
+      },
+      {
+        "key": "clip",
+        "typeId": "asset.video",
+        "title": "高潮镜头视频",
+        "params": {
+          "generateInstruction": "基于关键分镜生成短视频",
+          "generateDuration": 5
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "剪辑顺序",
+        "params": {
+          "text": "建议剪辑顺序：分镜1 → 分镜2 → 分镜3 → 高潮视频"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "shots",
+        "to": "board1"
+      },
+      {
+        "from": "shots",
+        "to": "board2"
+      },
+      {
+        "from": "shots",
+        "to": "board3"
+      },
+      {
+        "from": "board2",
+        "to": "clip"
+      }
+    ]
+  }
+}

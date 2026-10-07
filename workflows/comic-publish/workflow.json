@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "id": "comic-publish",
+  "title": "漫画出版",
+  "titleEn": "Comic publishing",
+  "summary": "剧本 → 分镜图 ×3 → 漫画页排版导出",
+  "category": "comic",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "comic.page",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "漫画页出版",
+    "nodes": [
+      {
+        "key": "script",
+        "typeId": "play.script",
+        "title": "漫画剧本",
+        "params": {
+          "text": "（按格写分镜：画面描述、台词、情绪与镜头）"
+        }
+      },
+      {
+        "key": "panel1",
+        "typeId": "asset.image",
+        "title": "分镜图 1",
+        "params": {
+          "generateInstruction": "漫画第 1 格：按剧本绘制，统一画风与角色形象"
+        }
+      },
+      {
+        "key": "panel2",
+        "typeId": "asset.image",
+        "title": "分镜图 2",
+        "params": {
+          "generateInstruction": "漫画第 2 格：承接第 1 格剧情，统一画风"
+        }
+      },
+      {
+        "key": "panel3",
+        "typeId": "asset.image",
+        "title": "分镜图 3",
+        "params": {
+          "generateInstruction": "漫画第 3 格：收束本页剧情，统一画风"
+        }
+      },
+      {
+        "key": "page",
+        "typeId": "comic.page",
+        "title": "漫画页"
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "流程：先运行三张「分镜图」锁定角色与画风 → 双击「漫画页」进入编辑器，把分镜图拖入分格、加台词气泡、调页面背景色 → 导出成片（支持透明底 PNG）。分格与气泡支持手柄缩放。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "script",
+        "to": "panel1"
+      },
+      {
+        "from": "script",
+        "to": "panel2"
+      },
+      {
+        "from": "script",
+        "to": "panel3"
+      },
+      {
+        "from": "panel1",
+        "to": "page",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "panel2",
+        "to": "page",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "panel3",
+        "to": "page",
+        "fromPort": "out",
+        "toPort": "in-image"
+      }
+    ]
+  }
+}

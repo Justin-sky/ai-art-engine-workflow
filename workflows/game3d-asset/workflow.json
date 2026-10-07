@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "id": "game3d-asset",
+  "title": "游戏3D资产",
+  "titleEn": "Game 3D assets",
+  "summary": "文生3D模型 → 导演台 → 站位图 → 展示视频",
+  "category": "game",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.model3d",
+      "asset.motion",
+      "asset.video",
+      "image.select",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "游戏 3D 资产预演",
+    "nodes": [
+      {
+        "key": "script",
+        "typeId": "play.script",
+        "title": "资产设定",
+        "params": {
+          "text": "（描述角色 / 道具 / 载具的外观、材质与比例）"
+        }
+      },
+      {
+        "key": "modelMain",
+        "typeId": "asset.model3d",
+        "title": "主角 3D 模型",
+        "params": {
+          "generateInstruction": "按设定生成主角 3D 模型，结构完整，材质干净"
+        }
+      },
+      {
+        "key": "modelProp",
+        "typeId": "asset.model3d",
+        "title": "配套道具模型",
+        "params": {
+          "generateInstruction": "按设定生成配套道具 3D 模型，比例与主角一致"
+        }
+      },
+      {
+        "key": "motion",
+        "typeId": "asset.motion",
+        "title": "导演台预演"
+      },
+      {
+        "key": "select",
+        "typeId": "image.select",
+        "title": "选站位图"
+      },
+      {
+        "key": "video",
+        "typeId": "asset.video",
+        "title": "资产展示视频",
+        "params": {
+          "generateInstruction": "基于站位图生成游戏资产展示视频，缓慢环绕运镜",
+          "generateDuration": 8,
+          "generateAspectRatio": "16:9"
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "流程：运行两个「3D 模型」节点生成 GLB → 连到「导演台预演」后双击进入舞台，模型自动实例化；在舞台里用基础几何体补景、摆机位 → 截取站位图（out-shots）→ 经「选站位图」挑一张生成展示视频。配套道具模型可随时替换接入导演台。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "script",
+        "to": "modelMain"
+      },
+      {
+        "from": "script",
+        "to": "modelProp"
+      },
+      {
+        "from": "modelMain",
+        "to": "motion",
+        "fromPort": "out",
+        "toPort": "in-model"
+      },
+      {
+        "from": "motion",
+        "to": "select",
+        "fromPort": "out-shots",
+        "toPort": "in"
+      },
+      {
+        "from": "select",
+        "to": "video",
+        "fromPort": "out",
+        "toPort": "in-image"
+      }
+    ]
+  }
+}

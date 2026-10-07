@@ -1,0 +1,47 @@
+name: Build index
+
+# 合并进 main 后自动重建 index.json。
+#
+# 这是「贡献者不必手改索引」的**唯一执行者**：索引是派生产物，手改会被
+# validate.yml 拒掉，而这里保证它总是与 workflows/ 同步 ——
+# 于是「改了工作流忘了改索引」与「多人同时改索引」两类冲突都不存在。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'workflows/**'
+      - 'scripts/validate.mjs'
+      - 'scripts/build-index.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 校验（索引不一致时不生成，避免把坏数据写成索引）
+        run: node scripts/validate.mjs || true
+
+      - name: 重建索引
+        run: node scripts/build-index.mjs
+
+      - name: 提交变更（仅当索引真的变了）
+        run: |
+          if git diff --quiet -- index.json; then
+            echo "index.json 无变化"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.json
+          git commit -m "chore(index): 重建市场索引 [skip ci]"
+          git push

@@ -1,0 +1,30 @@
+name: Validate
+
+# PR 上的门禁：格式 / 依赖 / 索引一致性。
+# 这些规则与贡献者本地跑的 `node scripts/validate.mjs` **完全同一份代码** ——
+# 本地过、CI 不过这种事不该发生。
+
+on:
+  pull_request:
+    paths:
+      - 'workflows/**'
+      - 'index.json'
+      - 'scripts/**'
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 校验工作流格式与依赖
+        run: node scripts/validate.mjs
+
+      - name: 校验 index.json 与磁盘一致
+        run: node scripts/build-index.mjs --check

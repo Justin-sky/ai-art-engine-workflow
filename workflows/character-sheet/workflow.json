@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "id": "character-sheet",
+  "title": "角色设定",
+  "titleEn": "Character sheet",
+  "summary": "人设文案 + 多视角立绘",
+  "category": "character",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "角色设定",
+    "nodes": [
+      {
+        "key": "bio",
+        "typeId": "play.script",
+        "title": "人设描述",
+        "params": {
+          "text": "（角色姓名、性格、外观、服饰与画风约束）"
+        }
+      },
+      {
+        "key": "front",
+        "typeId": "asset.image",
+        "title": "正面立绘",
+        "params": {
+          "generateInstruction": "角色正面全身立绘，干净背景"
+        }
+      },
+      {
+        "key": "side",
+        "typeId": "asset.image",
+        "title": "侧面立绘",
+        "params": {
+          "generateInstruction": "同一角色侧面全身立绘，画风与正面一致"
+        }
+      },
+      {
+        "key": "expr",
+        "typeId": "asset.image",
+        "title": "表情变体",
+        "params": {
+          "generateInstruction": "同一角色半身表情变体，三到四格"
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "设定备注",
+        "params": {
+          "text": "可在此记录禁忌色、道具与参考链接"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "bio",
+        "to": "front"
+      },
+      {
+        "from": "bio",
+        "to": "side"
+      },
+      {
+        "from": "bio",
+        "to": "expr"
+      }
+    ]
+  }
+}

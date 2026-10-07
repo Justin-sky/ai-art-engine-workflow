@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-07T02:53:33.502Z",
+  "source": {
+    "repo": "https://github.com/Justin-sky/ai-art-engine-workflow",
+    "ref": "main"
+  },
+  "workflows": [
+    {
+      "id": "anim2d-gif",
+      "title": "2D 帧动画",
+      "titleEn": "2D frame anim",
+      "summary": "序列图 → 逐帧 PNG + GIF 动图",
+      "category": "game",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "anim.2d",
+          "asset.image",
+          "note.text"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 3,
+      "edgeCount": 1,
+      "sizeBytes": 1782
+    },
+    {
+      "id": "character-sheet",
+      "title": "角色设定",
+      "titleEn": "Character sheet",
+      "summary": "人设文案 + 多视角立绘",
+      "category": "character",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 5,
+      "edgeCount": 3,
+      "sizeBytes": 1855
+    },
+    {
+      "id": "comic-publish",
+      "title": "漫画出版",
+      "titleEn": "Comic publishing",
+      "summary": "剧本 → 分镜图 ×3 → 漫画页排版导出",
+      "category": "comic",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "comic.page",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 6,
+      "edgeCount": 6,
+      "sizeBytes": 2609
+    },
+    {
+      "id": "course-narrate",
+      "title": "知识口播",
+      "titleEn": "Knowledge talking-head",
+      "summary": "讲稿 → 配音 + 口播视频 → 口型同步",
+      "category": "comic",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.video",
+          "asset.voice",
+          "note.text",
+          "play.script",
+          "video.lipSync"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 6,
+      "edgeCount": 6,
+      "sizeBytes": 2856
+    },
+    {
+      "id": "director-previz",
+      "title": "3D导演台预演",
+      "titleEn": "3D director previz",
+      "summary": "全景参考 → 几何体搭景 → 站位图锁构图",
+      "category": "film",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.motion",
+          "asset.video",
+          "image.select",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 6,
+      "edgeCount": 5,
+      "sizeBytes": 2597
+    },
+    {
+      "id": "ecom-ad-deep",
+      "title": "电商带货",
+      "titleEn": "E-commerce ads",
+      "summary": "主视觉 → 变体矩阵 → 图层分离",
+      "category": "ad",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "image.adVariants",
+          "image.layerSplit",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 6,
+      "edgeCount": 4,
+      "sizeBytes": 2277
+    },
+    {
+      "id": "game-icons",
+      "title": "游戏图标包",
+      "titleEn": "Game icon pack",
+      "summary": "名单 ×3 → 3×3 整版表 ×3 → 切格 / 透明打包",
+      "category": "game",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "image.gridSplit",
+          "image.iconPack",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 14,
+      "edgeCount": 15,
+      "sizeBytes": 7980
+    },
+    {
+      "id": "game-ua-video",
+      "title": "游戏买量",
+      "titleEn": "Game UA",
+      "summary": "剧本 → 分镜图 → 视频",
+      "category": "ad",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.video",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 4,
+      "edgeCount": 2,
+      "sizeBytes": 1685
+    },
+    {
+      "id": "game-ui",
+      "title": "游戏UI界面",
+      "titleEn": "Game UI screens",
+      "summary": "策划案 → UI拆分 → UI生成",
+      "category": "game",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.gameSystem",
+          "note.text",
+          "ui.gen",
+          "ui.split"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 4,
+      "edgeCount": 2,
+      "sizeBytes": 1674
+    },
+    {
+      "id": "game3d-asset",
+      "title": "游戏3D资产",
+      "titleEn": "Game 3D assets",
+      "summary": "文生3D模型 → 导演台 → 站位图 → 展示视频",
+      "category": "game",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.model3d",
+          "asset.motion",
+          "asset.video",
+          "image.select",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 7,
+      "edgeCount": 5,
+      "sizeBytes": 2931
+    },
+    {
+      "id": "product-ad",
+      "title": "产品广告",
+      "titleEn": "Product ad",
+      "summary": "卖点文案 + 产品图 + 短视频",
+      "category": "ad",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.video",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 4,
+      "edgeCount": 3,
+      "sizeBytes": 1638
+    },
+    {
+      "id": "short-drama",
+      "title": "短剧分镜",
+      "titleEn": "Short drama",
+      "summary": "剧本→节拍→9宫格→4宫格→36动态视频（Agent 流水线）",
+      "category": "film",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.video",
+          "episode.cellSelect",
+          "image.gridSplit",
+          "note.text",
+          "play.script",
+          "prompt.optimize"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 137,
+      "edgeCount": 191,
+      "sizeBytes": 94275
+    },
+    {
+      "id": "short-drama9",
+      "title": "短剧分镜·9格直出",
+      "titleEn": "Short drama · 9 direct",
+      "summary": "剧本→节拍→9宫格→动画师9条动态提示词→9条视频",
+      "category": "film",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.video",
+          "episode.cellSelect",
+          "image.gridSplit",
+          "note.text",
+          "play.script",
+          "prompt.optimize"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 36,
+      "edgeCount": 51,
+      "sizeBytes": 36021
+    },
+    {
+      "id": "storyboard-video",
+      "title": "分镜出片",
+      "titleEn": "Storyboard to film",
+      "summary": "分镜图串成视频",
+      "category": "film",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.image",
+          "asset.video",
+          "note.text",
+          "play.script"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 6,
+      "edgeCount": 4,
+      "sizeBytes": 2099
+    },
+    {
+      "id": "world-model",
+      "title": "世界模型",
+      "titleEn": "World model",
+      "summary": "空间世界生成 → 空间世界导出 → 3D 导演台",
+      "category": "character",
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "asset.motion",
+          "asset.spatialWorld",
+          "asset.video",
+          "image.select",
+          "note.text",
+          "play.script",
+          "spatialWorld.export"
+        ],
+        "appMinVersion": "7.1.0"
+      },
+      "nodeCount": 7,
+      "edgeCount": 6,
+      "sizeBytes": 3881
+    }
+  ]
+}

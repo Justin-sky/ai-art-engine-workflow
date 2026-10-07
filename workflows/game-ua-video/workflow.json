@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "id": "game-ua-video",
+  "title": "游戏买量",
+  "titleEn": "Game UA",
+  "summary": "剧本 → 分镜图 → 视频",
+  "category": "ad",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.video",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "游戏买量短视频",
+    "nodes": [
+      {
+        "key": "script",
+        "typeId": "play.script",
+        "title": "卖点与旁白",
+        "params": {
+          "text": "（在此填写游戏卖点、钩子与旁白文案）"
+        }
+      },
+      {
+        "key": "keyart",
+        "typeId": "asset.image",
+        "title": "关键分镜图",
+        "params": {
+          "generateInstruction": "竖屏游戏买量关键帧，角色清晰，强视觉冲击"
+        }
+      },
+      {
+        "key": "video",
+        "typeId": "asset.video",
+        "title": "买量视频",
+        "params": {
+          "generateInstruction": "15 秒左右竖屏广告节奏，承接关键帧画面",
+          "generateDuration": 15,
+          "generateAspectRatio": "9:16"
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "剪辑说明",
+        "params": {
+          "text": "成片剪辑顺序与时长备注"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "script",
+        "to": "keyart"
+      },
+      {
+        "from": "keyart",
+        "to": "video"
+      }
+    ]
+  }
+}

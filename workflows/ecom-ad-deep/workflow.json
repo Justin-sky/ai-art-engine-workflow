@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "id": "ecom-ad-deep",
+  "title": "电商带货",
+  "titleEn": "E-commerce ads",
+  "summary": "主视觉 → 变体矩阵 → 图层分离",
+  "category": "ad",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "image.adVariants",
+      "image.layerSplit",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "电商带货·变体",
+    "nodes": [
+      {
+        "key": "copy",
+        "typeId": "play.script",
+        "title": "卖点文案",
+        "params": {
+          "text": "（产品名、核心卖点、优惠信息与 CTA）"
+        }
+      },
+      {
+        "key": "hero",
+        "typeId": "asset.image",
+        "title": "产品主视觉",
+        "params": {
+          "generateInstruction": "电商产品英雄图，突出质感与卖点，干净背景"
+        }
+      },
+      {
+        "key": "scene",
+        "typeId": "asset.image",
+        "title": "使用场景图",
+        "params": {
+          "generateInstruction": "产品真实使用场景，突出人群与使用氛围"
+        }
+      },
+      {
+        "key": "adVariants",
+        "typeId": "image.adVariants",
+        "title": "广告变体矩阵"
+      },
+      {
+        "key": "split",
+        "typeId": "image.layerSplit",
+        "title": "图层分离"
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "流程：运行「产品主视觉 / 使用场景图」→ 双击「广告变体矩阵」配置产品描述与变体维度，批量生成多版本 → 需要改详情页文字层时，把主视觉接入「图层分离」分层导出（PSD / PNG）。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "copy",
+        "to": "hero"
+      },
+      {
+        "from": "copy",
+        "to": "scene"
+      },
+      {
+        "from": "hero",
+        "to": "adVariants"
+      },
+      {
+        "from": "hero",
+        "to": "split",
+        "fromPort": "out",
+        "toPort": "in"
+      }
+    ]
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "id": "game-icons",
+  "title": "游戏图标包",
+  "titleEn": "Game icon pack",
+  "summary": "名单 ×3 → 3×3 整版表 ×3 → 切格 / 透明打包",
+  "category": "game",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "image.gridSplit",
+      "image.iconPack",
+      "note.text",
+      "play.script"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "游戏图标包",
+    "nodes": [
+      {
+        "key": "scriptTheme",
+        "typeId": "play.script",
+        "title": "画风主题",
+        "params": {
+          "text": "画风主题（示例）：暖色 2D 卡通、浅色卡片底、描边统一——可按需改写主题句，正式风格以「风格参考图 → UI/图标」为准。"
+        }
+      },
+      {
+        "key": "skillNames",
+        "typeId": "play.script",
+        "title": "技能图标名单",
+        "params": {
+          "text": "火焰斩\n冰霜护盾\n雷击\n冲刺\n治疗术\n狂暴\n破甲\n圣光祝福"
+        }
+      },
+      {
+        "key": "skillSheet",
+        "typeId": "asset.image",
+        "title": "技能图标·整版",
+        "params": {
+          "generateInstruction": "按名单顺序，绘制一张 3 行 × 3 列均匀九宫格的技能图标整版表（战斗招式风格）：每格一枚独立技能图标，格子自左向右、逐行对应名单顺序。 图标统一规范：等线宽描边、同一圆角与内边距比例、主体简洁高对比（缩小到 16px 仍可辨）、每格一枚完整图标、不画任何文字、不画网格线与外框；名单不足 9 枚时其余格为纯色空白底。",
+          "generateAspectRatio": "1:1"
+        }
+      },
+      {
+        "key": "skillSplit",
+        "typeId": "image.gridSplit",
+        "title": "技能图标·切格",
+        "params": {
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": []
+          }
+        }
+      },
+      {
+        "key": "skillPack",
+        "typeId": "image.iconPack",
+        "title": "技能图标·打包",
+        "params": {
+          "iconPack": {
+            "rows": 3,
+            "cols": 3,
+            "edgeInset": "auto",
+            "keyColor": "auto",
+            "distance": 40,
+            "feather": 34,
+            "canvasSize": 0
+          },
+          "mediaOutputDir": "Assets/IconPacks/skill"
+        }
+      },
+      {
+        "key": "itemNames",
+        "typeId": "play.script",
+        "title": "道具图标名单",
+        "params": {
+          "text": "体力药水\n金币袋\n钥匙\n魔法卷轴\n地图\n护身符"
+        }
+      },
+      {
+        "key": "itemSheet",
+        "typeId": "asset.image",
+        "title": "道具图标·整版",
+        "params": {
+          "generateInstruction": "按名单顺序，绘制一张 3 行 × 3 列均匀九宫格的道具图标整版表（物品物件风格）：每格一枚独立道具图标，格子自左向右、逐行对应名单顺序。 图标统一规范：等线宽描边、同一圆角与内边距比例、主体简洁高对比（缩小到 16px 仍可辨）、每格一枚完整图标、不画任何文字、不画网格线与外框；名单不足 9 枚时其余格为纯色空白底。",
+          "generateAspectRatio": "1:1"
+        }
+      },
+      {
+        "key": "itemSplit",
+        "typeId": "image.gridSplit",
+        "title": "道具图标·切格",
+        "params": {
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": []
+          }
+        }
+      },
+      {
+        "key": "itemPack",
+        "typeId": "image.iconPack",
+        "title": "道具图标·打包",
+        "params": {
+          "iconPack": {
+            "rows": 3,
+            "cols": 3,
+            "edgeInset": "auto",
+            "keyColor": "auto",
+            "distance": 40,
+            "feather": 34,
+            "canvasSize": 0
+          },
+          "mediaOutputDir": "Assets/IconPacks/item"
+        }
+      },
+      {
+        "key": "statusNames",
+        "typeId": "play.script",
+        "title": "状态图标名单",
+        "params": {
+          "text": "中毒\n灼烧\n冰冻\n护盾\n眩晕\n虚弱\n流血"
+        }
+      },
+      {
+        "key": "statusSheet",
+        "typeId": "asset.image",
+        "title": "状态图标·整版",
+        "params": {
+          "generateInstruction": "按名单顺序，绘制一张 3 行 × 3 列均匀九宫格的状态图标整版表（状态徽记风格）：每格一枚独立状态图标，格子自左向右、逐行对应名单顺序。 图标统一规范：等线宽描边、同一圆角与内边距比例、主体简洁高对比（缩小到 16px 仍可辨）、每格一枚完整图标、不画任何文字、不画网格线与外框；名单不足 9 枚时其余格为纯色空白底。",
+          "generateAspectRatio": "1:1"
+        }
+      },
+      {
+        "key": "statusSplit",
+        "typeId": "image.gridSplit",
+        "title": "状态图标·切格",
+        "params": {
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": []
+          }
+        }
+      },
+      {
+        "key": "statusPack",
+        "typeId": "image.iconPack",
+        "title": "状态图标·打包",
+        "params": {
+          "iconPack": {
+            "rows": 3,
+            "cols": 3,
+            "edgeInset": "auto",
+            "keyColor": "auto",
+            "distance": 40,
+            "feather": 34,
+            "canvasSize": 0
+          },
+          "mediaOutputDir": "Assets/IconPacks/status"
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "使用流程：1) 在「画风主题」填主题句；在「技能/道具/状态图标名单」各填一枚一行的名单（每类 ≤9 枚，名单顺序即整版表逐行格位，如 1-1 = 第 1 枚；改名单后对应「·整版」需重跑）；2) 为工程选择「UI / 图标」风格参考图，保证三类同一画风；3) 运行各「·整版」节点生成 3×3 方形卡片整版表；4) 运行各「·打包」节点：从整版逐格裁切 → 采样纯色底键控透明 → 修剪并统一画布中心对齐 → 按名单命名 PNG 落盘 Assets/IconPacks/…，并同目录写 icons.txt 清单（含 cellKey↔名单映射、文件名、锚点）；5) 「·切格」节点仅用于单枚检查/精修（逐枚 dive 后续再做）。打包前建议先跑一次「·切格」目检格位；若名单占满 9 枚无空白格，键控自动退回版面外框采样。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "scriptTheme",
+        "to": "skillSheet"
+      },
+      {
+        "from": "skillNames",
+        "to": "skillSheet"
+      },
+      {
+        "from": "skillSheet",
+        "to": "skillSplit"
+      },
+      {
+        "from": "skillNames",
+        "to": "skillPack"
+      },
+      {
+        "from": "skillSheet",
+        "to": "skillPack"
+      },
+      {
+        "from": "scriptTheme",
+        "to": "itemSheet"
+      },
+      {
+        "from": "itemNames",
+        "to": "itemSheet"
+      },
+      {
+        "from": "itemSheet",
+        "to": "itemSplit"
+      },
+      {
+        "from": "itemNames",
+        "to": "itemPack"
+      },
+      {
+        "from": "itemSheet",
+        "to": "itemPack"
+      },
+      {
+        "from": "scriptTheme",
+        "to": "statusSheet"
+      },
+      {
+        "from": "statusNames",
+        "to": "statusSheet"
+      },
+      {
+        "from": "statusSheet",
+        "to": "statusSplit"
+      },
+      {
+        "from": "statusNames",
+        "to": "statusPack"
+      },
+      {
+        "from": "statusSheet",
+        "to": "statusPack"
+      }
+    ]
+  }
+}

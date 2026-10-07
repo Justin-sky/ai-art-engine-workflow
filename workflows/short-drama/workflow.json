@@ -1,0 +1,2724 @@
+{
+  "schemaVersion": 1,
+  "id": "short-drama",
+  "title": "短剧分镜",
+  "titleEn": "Short drama",
+  "summary": "剧本→节拍→9宫格→4宫格→36动态视频（Agent 流水线）",
+  "category": "film",
+  "tags": [],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "asset.image",
+      "asset.video",
+      "episode.cellSelect",
+      "image.gridSplit",
+      "note.text",
+      "play.script",
+      "prompt.optimize"
+    ],
+    "appMinVersion": "7.1.0"
+  },
+  "plan": {
+    "title": "短剧分镜（Agent 流水线）",
+    "nodes": [
+      {
+        "key": "script",
+        "typeId": "play.script",
+        "title": "剧本",
+        "params": {
+          "text": "（在此填写单集剧本，或用「短剧创作框架」先生成）"
+        }
+      },
+      {
+        "key": "breakdown",
+        "typeId": "prompt.optimize",
+        "title": "Beat Breakdown Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "breakdown",
+          "skillId": "episode.breakdown",
+          "generateSystemPrompt": "你是拥有 10 年经验的分镜师兼摄影指导。核心心法：永远先想画面，再想机位，依靠“强调重点、弱化非重点”引导观众情绪。\n\n任务：把上游剧本拆解为「节拍拆解表」，严格输出 Markdown 表格，仅含表头与数据行：\n| 节拍编号 | 事件摘要 | 观众获得 (信息/情绪) | 情绪强度 (1-10) | 关键锚点 (是/否) |\n|---------|---------|-------------------|----------------|----------------|\n\n硬性要求：\n1. 完整覆盖剧本“起承转合”叙事弧线，剔除冗余信息。\n2. 单集总节拍控制在 12~28 条（可按篇幅 ±2，短剧一般约 20~25 条），按“起承转合”合并同类动作，禁止逐句逐动作拆条。\n3. 从全部节拍中选出 9 个关键锚点（可按篇幅 ±2，最多 11 个）准确卡在转折点上；每个节拍至多标 1 个“是”，锚点编号互不重复。\n4. 情绪强度符合从平静到高潮的递进规律。\n5. 只输出表格，不要解释、不要 JSON。",
+          "generateInstruction": "请将上游剧本拆解为节拍拆解表，严格按系统提示词规定的表格格式输出。"
+        }
+      },
+      {
+        "key": "review1",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · Beat Breakdown Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "breakdown",
+          "skillId": "episode.review.breakdown",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：节拍拆解表。硬性检查清单：\n- 数量与格式：总节拍 12~28 条；Markdown 表头与字段齐全。\n- 覆盖完整性：逐项对照剧本，起承转合完整，不得丢失关键事件、对白或转折。\n- 锚点质量：关键锚点数量为 9（可按篇幅 ±2，但必须卡在转折点）；锚点编号互不重复。\n- 情绪曲线：情绪强度有递进、高潮和回落，不能全程平铺。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为待审核的节拍拆解表。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "beatboard",
+        "typeId": "prompt.optimize",
+        "title": "9-Grid Storyboard Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "beatboard",
+          "skillId": "episode.beatboard",
+          "generateSystemPrompt": "你是拥有 10 年经验的分镜师兼摄影指导。核心心法：永远先想画面，再想机位，依靠“强调重点、弱化非重点”引导观众情绪。\n\n任务：基于上游「节拍拆解表」，为每场生成 9 个核心锚点的分镜提示词，严格输出：\n# 9宫格核心锚点\n## 格N [节拍ID: #N] - 标题\n- **景别与视角**: 景别 / 机位\n- **人物动作与表情**: 角色此刻的动作、姿态、表情、状态；服装/道具/武器如提及只写名称，不描述颜色/形态/材质\n- **场景与光影**: 场景只写名称（如：瓜摊），不描述场景外观；必须指明主光源方向（如：窗外冷色月光作为主顶光）\n- **构图与动线**: 疏密对比 / 空间纵深（前景、中景、后景）\n- **故事功能**: 该格承担的叙事作用\n\n硬性要求：\n1. 服装、道具、武器、场景一律只写名称（如：虎皮裙、金箍棒、算筹、瓜摊），不描述颜色/形态/材质等视觉细节；发型等外观细节由参考图提供，文字不描述以免干扰生图；9 格外观以参考图为准保持一致。\n2. 同场景主光源方向恒定；人物站位稳定成 I / A / L 型，禁止越轴造成瞬移感。\n3. 景别逻辑：禁止无意义的“拉抽屉”与同景别构图重复。\n4. 核心道具（如算筹）必须有特写或反应镜头强化其存在，但只写道具名称，不描述其外观。\n5. 先画面、后机位：先写画面内容与叙事重点，再选景别与机位。\n6. 严格按指令中注入的 9 个关键锚点生成：锚点1 对应 格1、锚点2 对应 格2，以此类推；每格 [节拍ID: #N] 的 N 为锚点序号 1~9，必须与格号一致，禁止使用原始节拍编号、禁止重复或自创。\n7. 若拆解表锚点不足 9 个，从其余节拍按顺序补齐到 9 格；若超过 9 个，只取前 9 个。\n8. 只输出清单，不要解释。",
+          "generateInstruction": "请基于上游节拍拆解表生成 9宫格分镜表（9 个核心锚点），严格按系统提示词规定的格式输出。"
+        }
+      },
+      {
+        "key": "review2",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · 9-Grid Storyboard Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "beatboard",
+          "skillId": "episode.review.beatboard",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：9宫格分镜表。硬性检查清单：\n- 结构与字段：9 格齐全，每格含景别/视角、人物动作与表情、场景与光影、构图与动线、故事功能。\n- 节拍映射：每格 [节拍ID: #N] 的 N 与格号一致，并与拆解表锚点一一对应。\n- 一致性：同角色服饰/发型/道具、场景与主光方向跨格稳定；禁止无动机换装或瞬移。\n- 镜头语法：景别无意义重复、同景别连续剪切、越轴、关键道具缺特写均视为问题。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为节拍拆解表，@3 为待审核的9宫格分镜表。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "img9grid",
+        "typeId": "asset.image",
+        "title": "9宫格拼图·锚点画布",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "beatboard",
+          "skillId": "episode.image.grid9",
+          "generateInstruction": "基于上游 9宫格分镜表生成一张 3×3 九宫格拼图画布：9 格按表内顺序依次对应 9 个核心锚点，人物服饰、主光方向、场景严格按表内描述保持绝对一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格1",
+        "params": {
+          "anchorCellIndex": 1,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格2",
+        "params": {
+          "anchorCellIndex": 2,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格3",
+        "params": {
+          "anchorCellIndex": 3,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "1-3"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格4",
+        "params": {
+          "anchorCellIndex": 4,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract5",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格5",
+        "params": {
+          "anchorCellIndex": 5,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract6",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格6",
+        "params": {
+          "anchorCellIndex": 6,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "2-3"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract7",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格7",
+        "params": {
+          "anchorCellIndex": 7,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "3-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract8",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格8",
+        "params": {
+          "anchorCellIndex": 8,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "3-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract9",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·格9",
+        "params": {
+          "anchorCellIndex": 9,
+          "imageGridSplit": {
+            "rows": 3,
+            "cols": 3,
+            "selected": [
+              "3-3"
+            ]
+          }
+        }
+      },
+      {
+        "key": "sequence",
+        "typeId": "prompt.optimize",
+        "title": "4-Grid Motion Storyboard Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.sequence",
+          "generateSystemPrompt": "你是拥有 10 年经验的分镜师兼摄影指导。核心心法：永远先想画面，再想机位，依靠“强调重点、弱化非重点”引导观众情绪。\n\n任务：基于上游「节拍拆解表」与「9宫格分镜表」，把 9 个宫格全部展开为动态分镜：每宫格 4 格（定场/引入/冲突/收尾），共 36 格。严格输出：\n# 展开的 9组/4宫格 动态故事板\n## 组N: 标题 -> 对应九宫格 格N\n- **格N-1 (定场)**: 画面描述。（景别: 全景）\n- **格N-2 (引入)**: 画面描述。（景别: 中景）\n- **格N-3 (冲突)**: 画面描述。（景别: 近景/特写）\n- **格N-4 (收尾)**: 画面描述。（景别: 全景/中景）\n\n硬性要求：\n1. 9 组全部展开，共 36 格；顺序严格 定场→引入→冲突→收尾。\n2. 组内景别遵循 定场(全景/远景) → 引入(中景) → 冲突(近景/特写) → 收尾(全景/中景) 的视觉推进。\n3. 严格遵循“渐松渐紧”：冲突前镜头渐紧（景别收近），冲突后渐松。\n4. 人物、服装、主光方向与 9宫格一致。\n5. 每组覆盖完整叙事区间：组N 覆盖「锚点N-1 之后到锚点N（含锚点N）」之间的节拍内容，锚点N为本组关键帧；除关键帧外，必须把区间内的普通节拍内容并入本组 4 格，禁止只画关键帧单帧。最后一组是末端关键帧：若该锚点之后还有节拍，必须全部并入最后一组（尤其收尾格），覆盖到剧本结束，禁止在最后锚点画面处截断。\n6. 组与组之间按节拍顺序连续衔接：整本剧本的节拍内容必须被全部展开，不丢节拍、不跳内容。\n7. 只输出清单，不要解释。",
+          "generateInstruction": "请基于上游节拍拆解表与9宫格分镜表生成 4宫格动态分镜表（9 组 × 4 格 = 36 格），每组覆盖锚点及其相邻普通节拍，严格按系统提示词规定的格式输出。"
+        }
+      },
+      {
+        "key": "review3",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · 4-Grid Motion Storyboard Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "sequence",
+          "skillId": "episode.review.sequence",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：4宫格动态分镜表。硬性检查清单：\n- 数量与结构：9 组×4 格，共 36 格；组内严格 定场→引入→冲突→收尾。\n- 覆盖完整性：每段必须覆盖锚点区间内的全部普通节拍、台词与情绪转折，不得只画关键帧；最后一组必须包含末端关键帧之后直至结束的剩余节拍。\n- 景别节奏：由远到近再放松，冲突前收紧、冲突后放松；禁止景别长期不变。\n- 一致性：与9宫格的人物、服装、主光、场景保持一致。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为节拍拆解表，@3 为9宫格分镜表，@4 为待审核的4宫格动态分镜表。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "motion",
+        "typeId": "prompt.optimize",
+        "title": "Motion Prompt Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "motion",
+          "skillId": "episode.motion",
+          "generateSystemPrompt": "你是好莱坞动画指导。你只负责一个任务：将静态的 4宫格画面结构，转化为带有时空动态的图生视频控制指令。\n\n任务：遍历上游「4宫格动态分镜表」的每一格，生成 36 条动态提示词，严格输出：\n# 图生视频动态指令\n## 镜头N [来源: 4宫格 组x-格y]\n- **Camera Move**: 推轨 (Dolly) / 摇镜 (Pan/Tilt) / 固定 (Static) / 手持 (Handheld)，写明方向与速度感\n- **Subject Action**: 带“预备-发力-缓冲”三段式的生物力学描述\n- **Env Action**: 火、水、布料、风的物理惯性，与动作时序同步\n- **台词/对白**: 该格角色原台词（完整照抄 4宫格表引号内对白并标注说话人；无对白写「无」）\n- **Duration**: 3秒 ~ 5秒\n\n硬性要求：\n1. 每条必须包含上述 4 要素，缺一不可。\n2. 动势持续原则：相邻镜头若为连贯动作，动势方向保持一致（左接左、右接右），节奏停顿时注明。\n3. 时长小于 3 秒的镜头只保留一个明确的视觉焦点。\n4. 环境物理（风、水、布料、烛火）必须与动作时序同步，禁止“动作先发生、环境后响应”。\n5. 台词必须完整保留：逐格照抄上游 4宫格动态分镜表中该格的对白原文（含说话人与标点），禁止省略、改写或并入动作描述；无对白格写「无」。台词用于视频口型/字幕，丢失会直接导致生成失败。\n6. 只输出指令表，不要解释。",
+          "generateInstruction": "请基于上游 4宫格动态分镜表生成动态提示词表（36 条），严格按系统提示词规定的格式输出。"
+        }
+      },
+      {
+        "key": "review4",
+        "typeId": "prompt.optimize",
+        "title": "Director Review · Motion Prompt Table",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeReviewTarget": "motion",
+          "skillId": "episode.review.motion",
+          "generateSystemPrompt": "你是一名具备分镜、摄影与剪辑经验的审片导演。你的职责是拿原始剧本和上一阶段产物作为依据，对当前产物做专业级审核；不是只看格式，也不是只挑错。你只判定并给出原因，绝不修改产物。\n\n审核维度：\n1. 叙事完整性：是否覆盖起承转合；是否丢失关键剧情、台词、转折或人物动机。\n2. 视觉一致性：人物身份、服饰、发型、道具、场景、主光方向、景别与轴线是否连贯。\n3. 镜头语法与节奏：景别递进、运动衔接、动势方向、紧张/松弛节奏是否成立。\n4. 物理与动作逻辑：动作过程、环境互动、时间轴是否成立。\n5. 可执行性：字段是否齐全、是否会导致下游图片/视频生成失败。\n\n通过标准（必须遵守，禁止默认 PASS）：\n1. 只有同时满足以下条件才可 PASS：\n   - 五项维度中没有 1~2 分的“不达标”项；\n   - 五项维度平均分 >= 4.0；\n   - 本阶段所有“硬性必须项”全部通过。\n2. 出现任一情况必须 FAIL：\n   - 结构残缺：缺格、缺字段、缺台词、缺时长、缺镜头运动等；\n   - 与原始剧本或上一阶段产物存在事实冲突；\n   - 人物、服装、发型、道具、场景、主光或轴线连续性被破坏；\n   - 动作或时间轴明显违反物理逻辑；\n   - 会导致下游图片/视频生成失败。\n3. 3 分表示“勉强可用但存在专业瑕疵”：不要轻易 PASS；只有该瑕疵不影响叙事、连续性与下游生成，且你已在审核清单中注明时，才可 PASS。\n4. FAIL 时列 2~3 条最关键的、可执行的原因，逐条指出产物位置和修改方式；禁止空泛批评。\n\n审核对象：动态提示词表。硬性检查清单：\n- 数量与字段：36 条，每条都有 Camera Move / Subject Action / Env Action / Dialogue / Duration。\n- 台词保真：逐字照抄 4宫格分镜表中的台词和说话人；缺台词或改写直接 FAIL。\n- 动作过程：预备-发力-缓冲或等价过程；环境物理与动作同步。\n- 连续性与节奏：相邻镜头的屏幕方向、动势、停顿合理；时长 3~5 秒。\n\n输出协议（必须严格，供状态机解析）：\n先输出简短「## 审核清单」，逐项给出 1~5 分与一句话；然后单独一行输出结论。\n## 结论: PASS\n或\n## 结论: FAIL (原因: <可执行的修改原因1>；<原因2>)",
+          "generateInstruction": "请以审片导演身份审核上方连接的产物。@1 为原始单集剧本，@2 为节拍拆解表，@3 为9宫格分镜表，@4 为4宫格动态分镜表，@5 为待审核的动态提示词表。 请对照原始剧本与上一阶段产物逐项比对。严格按通过标准：五项无 1~2 分且平均 >=4 才 PASS，否则 FAIL。输出 ## 结论: PASS 或 ## 结论: FAIL (原因: …)。"
+        }
+      },
+      {
+        "key": "img4grid1",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组1",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 1 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-1-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组1-格1",
+        "params": {
+          "gridCellIndex": "1-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-1-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组1-格2",
+        "params": {
+          "gridCellIndex": "1-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-1-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组1-格3",
+        "params": {
+          "gridCellIndex": "1-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-1-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组1-格4",
+        "params": {
+          "gridCellIndex": "1-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid2",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组2",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 2 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-2-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组2-格1",
+        "params": {
+          "gridCellIndex": "2-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-2-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组2-格2",
+        "params": {
+          "gridCellIndex": "2-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-2-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组2-格3",
+        "params": {
+          "gridCellIndex": "2-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-2-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组2-格4",
+        "params": {
+          "gridCellIndex": "2-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid3",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组3",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 3 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-3-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组3-格1",
+        "params": {
+          "gridCellIndex": "3-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-3-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组3-格2",
+        "params": {
+          "gridCellIndex": "3-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-3-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组3-格3",
+        "params": {
+          "gridCellIndex": "3-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-3-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组3-格4",
+        "params": {
+          "gridCellIndex": "3-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid4",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组4",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 4 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-4-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组4-格1",
+        "params": {
+          "gridCellIndex": "4-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-4-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组4-格2",
+        "params": {
+          "gridCellIndex": "4-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-4-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组4-格3",
+        "params": {
+          "gridCellIndex": "4-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-4-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组4-格4",
+        "params": {
+          "gridCellIndex": "4-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid5",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组5",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 5 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-5-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组5-格1",
+        "params": {
+          "gridCellIndex": "5-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-5-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组5-格2",
+        "params": {
+          "gridCellIndex": "5-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-5-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组5-格3",
+        "params": {
+          "gridCellIndex": "5-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-5-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组5-格4",
+        "params": {
+          "gridCellIndex": "5-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid6",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组6",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 6 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-6-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组6-格1",
+        "params": {
+          "gridCellIndex": "6-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-6-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组6-格2",
+        "params": {
+          "gridCellIndex": "6-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-6-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组6-格3",
+        "params": {
+          "gridCellIndex": "6-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-6-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组6-格4",
+        "params": {
+          "gridCellIndex": "6-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid7",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组7",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 7 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-7-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组7-格1",
+        "params": {
+          "gridCellIndex": "7-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-7-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组7-格2",
+        "params": {
+          "gridCellIndex": "7-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-7-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组7-格3",
+        "params": {
+          "gridCellIndex": "7-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-7-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组7-格4",
+        "params": {
+          "gridCellIndex": "7-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid8",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组8",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 8 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-8-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组8-格1",
+        "params": {
+          "gridCellIndex": "8-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-8-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组8-格2",
+        "params": {
+          "gridCellIndex": "8-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-8-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组8-格3",
+        "params": {
+          "gridCellIndex": "8-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-8-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组8-格4",
+        "params": {
+          "gridCellIndex": "8-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "img4grid9",
+        "typeId": "asset.image",
+        "title": "4宫格拼图·组9",
+        "params": {
+          "episodeScopeKey": "ep01",
+          "episodeStep": "sequence",
+          "skillId": "episode.image.grid4",
+          "generateInstruction": "基于上游 4宫格动态分镜表生成第 9 组的 2×2 四宫格拼图画布：左上定场、右上引入、左下冲突、右下收尾，人物服饰、主光方向、场景与参考首帧严格一致；每格独立成幅、无缝拼接，格与格之间不要边框、分隔线或白边；每格内容必须严格铺满自己的格子区域，格子边界即画面边界，不得内缩、留边距或留白；整张画布严格保持生成设置中的宽高比，无文字水印。"
+        }
+      },
+      {
+        "key": "gridExtract4-9-1",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组9-格1",
+        "params": {
+          "gridCellIndex": "9-1",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-9-2",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组9-格2",
+        "params": {
+          "gridCellIndex": "9-2",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "1-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-9-3",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组9-格3",
+        "params": {
+          "gridCellIndex": "9-3",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-1"
+            ]
+          }
+        }
+      },
+      {
+        "key": "gridExtract4-9-4",
+        "typeId": "image.gridSplit",
+        "title": "宫格提取·组9-格4",
+        "params": {
+          "gridCellIndex": "9-4",
+          "imageGridSplit": {
+            "rows": 2,
+            "cols": 2,
+            "selected": [
+              "2-2"
+            ]
+          }
+        }
+      },
+      {
+        "key": "cell1-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格1-1",
+        "params": {
+          "cellGroupIndex": 1,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video1-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格1-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格1-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "1-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell1-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格1-2",
+        "params": {
+          "cellGroupIndex": 1,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video1-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格1-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格1-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "1-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell1-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格1-3",
+        "params": {
+          "cellGroupIndex": 1,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video1-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格1-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格1-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "1-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell1-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格1-4",
+        "params": {
+          "cellGroupIndex": 1,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video1-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格1-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格1-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "1-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell2-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格2-1",
+        "params": {
+          "cellGroupIndex": 2,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video2-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格2-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格2-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "2-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell2-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格2-2",
+        "params": {
+          "cellGroupIndex": 2,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video2-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格2-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格2-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "2-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell2-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格2-3",
+        "params": {
+          "cellGroupIndex": 2,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video2-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格2-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格2-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "2-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell2-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格2-4",
+        "params": {
+          "cellGroupIndex": 2,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video2-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格2-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格2-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "2-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell3-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格3-1",
+        "params": {
+          "cellGroupIndex": 3,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video3-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格3-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格3-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "3-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell3-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格3-2",
+        "params": {
+          "cellGroupIndex": 3,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video3-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格3-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格3-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "3-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell3-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格3-3",
+        "params": {
+          "cellGroupIndex": 3,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video3-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格3-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格3-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "3-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell3-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格3-4",
+        "params": {
+          "cellGroupIndex": 3,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video3-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格3-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格3-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "3-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell4-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格4-1",
+        "params": {
+          "cellGroupIndex": 4,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video4-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格4-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格4-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "4-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell4-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格4-2",
+        "params": {
+          "cellGroupIndex": 4,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video4-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格4-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格4-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "4-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell4-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格4-3",
+        "params": {
+          "cellGroupIndex": 4,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video4-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格4-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格4-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "4-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell4-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格4-4",
+        "params": {
+          "cellGroupIndex": 4,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video4-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格4-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格4-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "4-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell5-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格5-1",
+        "params": {
+          "cellGroupIndex": 5,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video5-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格5-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格5-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "5-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell5-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格5-2",
+        "params": {
+          "cellGroupIndex": 5,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video5-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格5-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格5-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "5-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell5-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格5-3",
+        "params": {
+          "cellGroupIndex": 5,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video5-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格5-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格5-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "5-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell5-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格5-4",
+        "params": {
+          "cellGroupIndex": 5,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video5-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格5-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格5-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "5-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell6-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格6-1",
+        "params": {
+          "cellGroupIndex": 6,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video6-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格6-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格6-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "6-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell6-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格6-2",
+        "params": {
+          "cellGroupIndex": 6,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video6-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格6-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格6-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "6-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell6-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格6-3",
+        "params": {
+          "cellGroupIndex": 6,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video6-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格6-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格6-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "6-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell6-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格6-4",
+        "params": {
+          "cellGroupIndex": 6,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video6-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格6-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格6-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "6-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell7-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格7-1",
+        "params": {
+          "cellGroupIndex": 7,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video7-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格7-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格7-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "7-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell7-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格7-2",
+        "params": {
+          "cellGroupIndex": 7,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video7-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格7-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格7-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "7-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell7-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格7-3",
+        "params": {
+          "cellGroupIndex": 7,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video7-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格7-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格7-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "7-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell7-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格7-4",
+        "params": {
+          "cellGroupIndex": 7,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video7-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格7-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格7-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "7-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell8-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格8-1",
+        "params": {
+          "cellGroupIndex": 8,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video8-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格8-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格8-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "8-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell8-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格8-2",
+        "params": {
+          "cellGroupIndex": 8,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video8-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格8-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格8-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "8-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell8-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格8-3",
+        "params": {
+          "cellGroupIndex": 8,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video8-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格8-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格8-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "8-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell8-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格8-4",
+        "params": {
+          "cellGroupIndex": 8,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video8-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格8-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格8-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "8-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell9-1",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格9-1",
+        "params": {
+          "cellGroupIndex": 9,
+          "cellIndex": 1
+        }
+      },
+      {
+        "key": "video9-1",
+        "typeId": "asset.video",
+        "title": "动态视频·格9-1",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格9-1 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "9-1",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell9-2",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格9-2",
+        "params": {
+          "cellGroupIndex": 9,
+          "cellIndex": 2
+        }
+      },
+      {
+        "key": "video9-2",
+        "typeId": "asset.video",
+        "title": "动态视频·格9-2",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格9-2 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "9-2",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell9-3",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格9-3",
+        "params": {
+          "cellGroupIndex": 9,
+          "cellIndex": 3
+        }
+      },
+      {
+        "key": "video9-3",
+        "typeId": "asset.video",
+        "title": "动态视频·格9-3",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格9-3 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "9-3",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "cell9-4",
+        "typeId": "episode.cellSelect",
+        "title": "动态格选择·格9-4",
+        "params": {
+          "cellGroupIndex": 9,
+          "cellIndex": 4
+        }
+      },
+      {
+        "key": "video9-4",
+        "typeId": "asset.video",
+        "title": "动态视频·格9-4",
+        "params": {
+          "skillId": "episode.video.grid4",
+          "generateInstruction": "基于上游参考图与该动态格的图生视频指令生成 格9-4 的动态视频，参考图只提供风格与内容参考，严格遵循指令中的镜头运动、主体动作、环境交互与时长。",
+          "motionCellIndex": "9-4",
+          "generateDuration": 4
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "流水线说明",
+        "params": {
+          "text": "流程：剧本 → 节拍拆解表 → 9宫格分镜表 → 1 张 9宫格拼图 → 宫格提取 9 格锚点图 → 4宫格动态分镜表(9×4=36) → 每组 1 张 2×2 4宫格拼图（参考第 g 格锚点图）→ 宫格提取 36 格 → 动态提示词表(36) → 36 条动态视频（参考图用对应 4宫格提取图）。\n\n导演审核：review1~review4 输出 ## 结论: PASS / FAIL；FAIL 原因会自动写入 agent-state.json，重跑对应分镜师/动画师节点时自动附加原因。\n\n视频产出：单条按需 = 只运行某个 video 节点；一键全跑 = 批量运行全部 video 节点。命名规则：集-场-宫格-动态格。"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "from": "script",
+        "to": "breakdown"
+      },
+      {
+        "from": "script",
+        "to": "review1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "beatboard",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "script",
+        "to": "review2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "review2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "img9grid",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract5",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract6",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract7",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract8",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img9grid",
+        "to": "gridExtract9",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "sequence",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "sequence",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "script",
+        "to": "review3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "review3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "review3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "motion",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "script",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "breakdown",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "beatboard",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "motion",
+        "to": "review4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract1",
+        "to": "img4grid1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid1",
+        "to": "gridExtract4-1-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid1",
+        "to": "gridExtract4-1-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid1",
+        "to": "gridExtract4-1-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid1",
+        "to": "gridExtract4-1-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract2",
+        "to": "img4grid2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid2",
+        "to": "gridExtract4-2-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid2",
+        "to": "gridExtract4-2-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid2",
+        "to": "gridExtract4-2-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid2",
+        "to": "gridExtract4-2-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract3",
+        "to": "img4grid3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid3",
+        "to": "gridExtract4-3-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid3",
+        "to": "gridExtract4-3-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid3",
+        "to": "gridExtract4-3-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid3",
+        "to": "gridExtract4-3-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract4",
+        "to": "img4grid4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid4",
+        "to": "gridExtract4-4-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid4",
+        "to": "gridExtract4-4-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid4",
+        "to": "gridExtract4-4-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid4",
+        "to": "gridExtract4-4-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid5",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract5",
+        "to": "img4grid5",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid5",
+        "to": "gridExtract4-5-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid5",
+        "to": "gridExtract4-5-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid5",
+        "to": "gridExtract4-5-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid5",
+        "to": "gridExtract4-5-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid6",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract6",
+        "to": "img4grid6",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid6",
+        "to": "gridExtract4-6-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid6",
+        "to": "gridExtract4-6-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid6",
+        "to": "gridExtract4-6-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid6",
+        "to": "gridExtract4-6-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid7",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract7",
+        "to": "img4grid7",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid7",
+        "to": "gridExtract4-7-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid7",
+        "to": "gridExtract4-7-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid7",
+        "to": "gridExtract4-7-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid7",
+        "to": "gridExtract4-7-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid8",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract8",
+        "to": "img4grid8",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid8",
+        "to": "gridExtract4-8-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid8",
+        "to": "gridExtract4-8-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid8",
+        "to": "gridExtract4-8-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid8",
+        "to": "gridExtract4-8-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "sequence",
+        "to": "img4grid9",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "gridExtract9",
+        "to": "img4grid9",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "img4grid9",
+        "to": "gridExtract4-9-1",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid9",
+        "to": "gridExtract4-9-2",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid9",
+        "to": "gridExtract4-9-3",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "img4grid9",
+        "to": "gridExtract4-9-4",
+        "fromPort": "out",
+        "toPort": "in"
+      },
+      {
+        "from": "motion",
+        "to": "cell1-1"
+      },
+      {
+        "from": "gridExtract4-1-1",
+        "to": "video1-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell1-1",
+        "to": "video1-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell1-2"
+      },
+      {
+        "from": "gridExtract4-1-2",
+        "to": "video1-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell1-2",
+        "to": "video1-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell1-3"
+      },
+      {
+        "from": "gridExtract4-1-3",
+        "to": "video1-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell1-3",
+        "to": "video1-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell1-4"
+      },
+      {
+        "from": "gridExtract4-1-4",
+        "to": "video1-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell1-4",
+        "to": "video1-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell2-1"
+      },
+      {
+        "from": "gridExtract4-2-1",
+        "to": "video2-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell2-1",
+        "to": "video2-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell2-2"
+      },
+      {
+        "from": "gridExtract4-2-2",
+        "to": "video2-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell2-2",
+        "to": "video2-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell2-3"
+      },
+      {
+        "from": "gridExtract4-2-3",
+        "to": "video2-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell2-3",
+        "to": "video2-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell2-4"
+      },
+      {
+        "from": "gridExtract4-2-4",
+        "to": "video2-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell2-4",
+        "to": "video2-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell3-1"
+      },
+      {
+        "from": "gridExtract4-3-1",
+        "to": "video3-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell3-1",
+        "to": "video3-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell3-2"
+      },
+      {
+        "from": "gridExtract4-3-2",
+        "to": "video3-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell3-2",
+        "to": "video3-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell3-3"
+      },
+      {
+        "from": "gridExtract4-3-3",
+        "to": "video3-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell3-3",
+        "to": "video3-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell3-4"
+      },
+      {
+        "from": "gridExtract4-3-4",
+        "to": "video3-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell3-4",
+        "to": "video3-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell4-1"
+      },
+      {
+        "from": "gridExtract4-4-1",
+        "to": "video4-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell4-1",
+        "to": "video4-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell4-2"
+      },
+      {
+        "from": "gridExtract4-4-2",
+        "to": "video4-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell4-2",
+        "to": "video4-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell4-3"
+      },
+      {
+        "from": "gridExtract4-4-3",
+        "to": "video4-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell4-3",
+        "to": "video4-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell4-4"
+      },
+      {
+        "from": "gridExtract4-4-4",
+        "to": "video4-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell4-4",
+        "to": "video4-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell5-1"
+      },
+      {
+        "from": "gridExtract4-5-1",
+        "to": "video5-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell5-1",
+        "to": "video5-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell5-2"
+      },
+      {
+        "from": "gridExtract4-5-2",
+        "to": "video5-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell5-2",
+        "to": "video5-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell5-3"
+      },
+      {
+        "from": "gridExtract4-5-3",
+        "to": "video5-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell5-3",
+        "to": "video5-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell5-4"
+      },
+      {
+        "from": "gridExtract4-5-4",
+        "to": "video5-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell5-4",
+        "to": "video5-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell6-1"
+      },
+      {
+        "from": "gridExtract4-6-1",
+        "to": "video6-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell6-1",
+        "to": "video6-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell6-2"
+      },
+      {
+        "from": "gridExtract4-6-2",
+        "to": "video6-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell6-2",
+        "to": "video6-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell6-3"
+      },
+      {
+        "from": "gridExtract4-6-3",
+        "to": "video6-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell6-3",
+        "to": "video6-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell6-4"
+      },
+      {
+        "from": "gridExtract4-6-4",
+        "to": "video6-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell6-4",
+        "to": "video6-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell7-1"
+      },
+      {
+        "from": "gridExtract4-7-1",
+        "to": "video7-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell7-1",
+        "to": "video7-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell7-2"
+      },
+      {
+        "from": "gridExtract4-7-2",
+        "to": "video7-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell7-2",
+        "to": "video7-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell7-3"
+      },
+      {
+        "from": "gridExtract4-7-3",
+        "to": "video7-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell7-3",
+        "to": "video7-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell7-4"
+      },
+      {
+        "from": "gridExtract4-7-4",
+        "to": "video7-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell7-4",
+        "to": "video7-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell8-1"
+      },
+      {
+        "from": "gridExtract4-8-1",
+        "to": "video8-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell8-1",
+        "to": "video8-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell8-2"
+      },
+      {
+        "from": "gridExtract4-8-2",
+        "to": "video8-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell8-2",
+        "to": "video8-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell8-3"
+      },
+      {
+        "from": "gridExtract4-8-3",
+        "to": "video8-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell8-3",
+        "to": "video8-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell8-4"
+      },
+      {
+        "from": "gridExtract4-8-4",
+        "to": "video8-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell8-4",
+        "to": "video8-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell9-1"
+      },
+      {
+        "from": "gridExtract4-9-1",
+        "to": "video9-1",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell9-1",
+        "to": "video9-1",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell9-2"
+      },
+      {
+        "from": "gridExtract4-9-2",
+        "to": "video9-2",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell9-2",
+        "to": "video9-2",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell9-3"
+      },
+      {
+        "from": "gridExtract4-9-3",
+        "to": "video9-3",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell9-3",
+        "to": "video9-3",
+        "fromPort": "out",
+        "toPort": "in-text"
+      },
+      {
+        "from": "motion",
+        "to": "cell9-4"
+      },
+      {
+        "from": "gridExtract4-9-4",
+        "to": "video9-4",
+        "fromPort": "out",
+        "toPort": "in-image"
+      },
+      {
+        "from": "cell9-4",
+        "to": "video9-4",
+        "fromPort": "out",
+        "toPort": "in-text"
+      }
+    ]
+  }
+}
