@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T02:53:33.502Z",
+  "generatedAt": "2026-10-07T06:58:18.942Z",
   "source": {
     "repo": "https://github.com/Justin-sky/ai-art-engine-workflow",
     "ref": "main"
@@ -408,7 +408,24 @@
       },
       "nodeCount": 7,
       "edgeCount": 6,
-      "sizeBytes": 3881
+      "sizeBytes": 3881,
+      "skill": {
+        "name": "wf-world-model",
+        "description": "用「世界模型」工作流把一张参考图或一段场景设定变成可继续编排的 3D 世界产物（Marble 空间世界 → 导出网格/泼溅 → 导演台）。当用户要做空间世界、沉浸式场景、或想从图片得到一个可进入的 3D 环境时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 2607
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 3504
+          }
+        ],
+        "sizeBytes": 6111
+      }
     }
   ]
 }

@@ -12,6 +12,11 @@ workflows/my-workflow/
   workflow.json    必填
   cover.png        必填（800×450，≤ 300KB）
   README.md        可选
+  skill/           可选：给 AI 对话 agent 的操作手册
+    SKILL.md       必需（有 skill/ 就必需）
+    references/    可选：字段速查、契约、示例
+    scripts/       可选：客户端本轮不安装（见下）
+    assets/        可选：同上
 ```
 
 `workflow.json`：
@@ -63,14 +68,66 @@ workflows/my-workflow/
 
 ---
 
+## 一点五、可选：给工作流配一个技能（`skill/`）
+
+**为什么需要**：`plan` 是静态图，表达不了循环、条件分支、以及"先看结果再决定下一步"
+这类判断。应用的 AI 对话 agent 才是处理这些的出口。`skill/` 就是**给 agent 的操作手册**：
+它绑定到这条工作流，告诉 agent 该工作流怎么用、有哪些坑、参数去哪查。
+
+**只加文件就等于声明**：不需要在 `workflow.json` 里加任何字段。索引里的技能清单由
+`build-index.mjs` 从磁盘派生 —— 因为 `raw.githubusercontent` 没有目录列表 API，客户端
+必须先知道每个文件路径才能下载，而派生能保证清单永不与磁盘漂移。
+
+### `skill/SKILL.md`
+
+```markdown
+---
+name: wf-my-workflow          # 必须等于 wf-<工作流 id>
+description: 一句话说清什么时候该加载它    # ≤ 500 字符
+workflow: my-workflow         # 必须等于工作流 id
+workflow-version: 1.0.0       # 可选；写了就必须与 workflow.json 的 version 一致
+---
+
+# 标题
+
+正文：这条工作流产出什么、端口为什么这么连、上游输入怎么给、常见追问怎么答。
+```
+
+规则（校验器会逐条拦）：
+
+| 规则 | 为什么 |
+|---|---|
+| `name` 必须是 `wf-<id>` | 内置技能是**扁平 `<kebab-id>.md`**，与市场技能包落在**同一个目录、同一个 rank**，不加前缀会重名冲突 |
+| `name` 必须 kebab-case | dsh 的 `SKILL_NAME` 正则只认这个，不合法会被**静默忽略** |
+| `description` ≤ 500 字符 | dsh 的技能目录会截断，摘要必须短 |
+| 不得使用 `disableModelInvocation` / `modelInvocable` / `userInvocable` | dsh 对这些 camelCase 旧键**直接抛错**，请用 `disable-model-invocation` / `user-invocable` |
+| 只允许 `references/` `scripts/` `assets/` 子目录 | 其它目录不会被客户端安装，写了等于没写 |
+| 单文件 ≤ 128KB，整包 ≤ 512KB，文件数 ≤ 40 | 客户端逐个下载，不能没有天花板 |
+| 不允许符号链接 | 避免技能包指向仓库外 |
+
+### `scripts/` 现在会怎样
+
+**仓库接受提交，但客户端本轮只安装 `SKILL.md` 与 `references/`**，并在界面上标出「含脚本」。
+
+原因：dsh 的技能层**没有脚本沙箱、也没有同意流**（技能只是一个"返回正文"的工具），
+脚本能不能跑完全取决于通用 shell；而应用还没实现审批应答，默认策略下会**失败即关闭**。
+所以"先让文档进去、代码等同意流做好再放"是刻意的分期，不是遗漏。
+
+另外：**agent 本来就能自己写并运行脚本**，所以 `scripts/` 主要是"钉版本、免手写"的便利，
+不是获得计算能力的唯一途径。写技能时可以直接指示 agent 在需要时自己写脚本。
+
+---
+
 ## 二、提交前自查
 
 ```bash
-node scripts/validate.mjs
+node scripts/validate.mjs     # 格式 / 依赖 / 索引一致性
+node --test                   # 校验器自身的单测
 ```
 
 它会检查：id 形态、必填字段、semver、分类枚举、`plan` 结构、`edges` 悬空、
-`requires` 与 `plan` 一致性、未知节点类型、封面存在与体积。
+`requires` 与 `plan` 一致性、未知节点类型、封面存在与体积，以及**技能包**的
+frontmatter、`wf-` 前缀、子目录白名单、体积上限与 `workflow` 绑定。
 
 `index.json` **不要手改** —— CI 会在合并后自动重建。
 
@@ -102,6 +159,8 @@ node scripts/validate.mjs
 5. `license` 空着
 6. `summary` 超过 60 字（卡片只有一行，会被截断）
 7. 引用了 `known-node-types.json` 里没有的节点类型（应用会拒绝使用）
+8. 技能包的 `name` 忘了 `wf-` 前缀，或 `workflow`/`workflow-version` 没和工作流对上
+9. 技能包里出现了 `references/` `scripts/` `assets/` 之外的目录
 
 ---
 

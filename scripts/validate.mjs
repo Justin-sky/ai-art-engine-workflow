@@ -29,8 +29,26 @@ export const LIMITS = {
   summaryMax: 60,
   coverMaxBytes: 300 * 1024,
   nodesMax: 200,
-  paramTextMax: 20000
+  paramTextMax: 20000,
+  /** 技能包：单文件 / 整包 / 文件数上限（客户端要逐个下载，不能没有天花板） */
+  skillFileMaxBytes: 128 * 1024,
+  skillMaxBytes: 512 * 1024,
+  skillFileCountMax: 40,
+  /** dsh 的技能目录会把 description 截断，摘要必须短 */
+  skillDescriptionMax: 500
 }
+
+/**
+ * 技能包允许的子目录。
+ *
+ * `scripts/` 与 `assets/` 是**为将来预留**：本轮客户端只安装 `SKILL.md` 与 `references/`
+ * （脚本要跑就得先有同意流，见 CONTRIBUTING）。仓库侧仍允许提交，索引里标 `hasScripts`，
+ * 客户端据此提示用户 —— 这样"仓库支持"与"客户端肯装"是两件事，不会互相卡住。
+ */
+export const SKILL_SUBDIRS = ['references', 'scripts', 'assets']
+
+/** dsh 会对这些 camelCase 旧键**直接抛错**，必须在仓库侧拦住 */
+const LEGACY_INVOCATION_KEYS = ['disableModelInvocation', 'modelInvocable', 'userInvocable']
 
 const ID_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:-[-0-9A-Za-z.]+)?(?:\+[-0-9A-Za-z.]+)?$/
@@ -55,6 +73,179 @@ export function nodeTypesOfPlan(plan) {
     if (node && typeof node.typeId === 'string' && node.typeId.trim()) set.add(node.typeId.trim())
   }
   return [...set].sort()
+}
+
+/**
+ * 解析 SKILL.md 的 frontmatter。
+ *
+ * 只认**扁平的 `key: value`**（不引 YAML 依赖）：本仓库的技能 frontmatter 由我们规定，
+ * 需要嵌套结构时应改用扁平键，而不是让解析器变复杂。
+ * 值的引号会被剥掉，`#` 开头整行视为注释。
+ */
+export function parseSkillFrontmatter(text) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(text)
+  if (!match) return { error: '缺少 frontmatter（文件必须以 --- 开头，并以 --- 结束）' }
+  const data = {}
+  for (const rawLine of match[1].split(/\r?\n/)) {
+    const line = rawLine.trim()
+    if (!line || line.startsWith('#')) continue
+    const kv = /^([A-Za-z][\w-]*):\s*(.*)$/.exec(line)
+    if (!kv) return { error: `frontmatter 行无法解析：${JSON.stringify(rawLine)}` }
+    let value = kv[2].trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"') && value.length > 1) ||
+      (value.startsWith("'") && value.endsWith("'") && value.length > 1)
+    ) {
+      value = value.slice(1, -1)
+    }
+    data[kv[1]] = value
+  }
+  return { data, body: text.slice(match[0].length) }
+}
+
+/** 递归列目录（返回相对技能根的正斜杠路径），符号链接直接判错 */
+function listSkillFiles(skillDir) {
+  const files = []
+  const errors = []
+  const walk = (absDir, relDir) => {
+    let entries
+    try {
+      entries = readdirSync(absDir, { withFileTypes: true })
+    } catch (err) {
+      errors.push(`无法读取技能目录 ${relDir || '.'}：${err.message}`)
+      return
+    }
+    for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
+      const rel = relDir ? `${relDir}/${entry.name}` : entry.name
+      const abs = join(absDir, entry.name)
+      if (entry.isSymbolicLink()) {
+        errors.push(`技能包不允许符号链接：${rel}`)
+        continue
+      }
+      if (entry.isDirectory()) {
+        if (!relDir && !SKILL_SUBDIRS.includes(entry.name)) {
+          errors.push(`技能包只允许 ${SKILL_SUBDIRS.join(' / ')} 子目录，实际有 ${entry.name}`)
+          continue
+        }
+        walk(abs, rel)
+        continue
+      }
+      if (!entry.isFile()) {
+        errors.push(`技能包含非普通文件：${rel}`)
+        continue
+      }
+      let sizeBytes = 0
+      try {
+        sizeBytes = statSync(abs).size
+      } catch {
+        sizeBytes = 0
+      }
+      files.push({ path: rel, sizeBytes })
+    }
+  }
+  walk(skillDir, '')
+  return { files, errors }
+}
+
+/**
+ * 读取并校验 `workflows/<id>/skill/`（不存在则返回 `skill: null`，表示该工作流不带技能）。
+ *
+ * 命名空间是硬要求：内置技能是**扁平 `<kebab-id>.md`**，与市场技能包落在**同一个 dsh 根、
+ * 同一个 rank**，直接同名会冲突。因此强制 `name === 'wf-' + <工作流 id>`。
+ */
+export function readSkillBundle(dir, dirName, bundle) {
+  const skillDir = join(dir, 'skill')
+  let present = false
+  try {
+    present = statSync(skillDir).isDirectory()
+  } catch {
+    return { errors: [], skill: null }
+  }
+  if (!present) return { errors: [], skill: null }
+
+  const errors = []
+  const push = (msg) => errors.push(`${dirName}: 技能 ${msg}`)
+
+  const entryPath = join(skillDir, 'SKILL.md')
+  let text = null
+  try {
+    text = readFileSync(entryPath, 'utf8')
+  } catch {
+    push('存在 skill/ 但缺少 SKILL.md')
+    return { errors, skill: null }
+  }
+
+  const parsed = parseSkillFrontmatter(text)
+  if (parsed.error) {
+    push(`SKILL.md ${parsed.error}`)
+    return { errors, skill: null }
+  }
+  const data = parsed.data
+
+  for (const key of LEGACY_INVOCATION_KEYS) {
+    if (Object.hasOwn(data, key)) {
+      push(`frontmatter 用了 dsh 已拒绝的旧键 ${key}（会直接报错），请改用 kebab-case 写法`)
+    }
+  }
+
+  const name = typeof data.name === 'string' ? data.name.trim() : ''
+  const description = typeof data.description === 'string' ? data.description.trim() : ''
+  if (!name) push('SKILL.md 必须写 frontmatter name')
+  if (!description) push('SKILL.md 必须写 frontmatter description')
+  if (description.length > LIMITS.skillDescriptionMax) {
+    push(`description 超过 ${LIMITS.skillDescriptionMax} 字符（dsh 技能目录会截断）`)
+  }
+  const expectedName = `wf-${dirName}`
+  if (name && !ID_RE.test(name)) {
+    push(`name 必须是 kebab-case，实际 ${JSON.stringify(name)}`)
+  } else if (name && name !== expectedName) {
+    push(`name 必须是 ${expectedName}（wf- 前缀避免与内置技能重名），实际 ${JSON.stringify(name)}`)
+  }
+  // 与所属工作流绑定：防止把技能挪到别的工作流下却忘了改内容
+  const boundWorkflow = typeof data.workflow === 'string' ? data.workflow.trim() : ''
+  if (!boundWorkflow) {
+    push(`SKILL.md 必须写 workflow: ${dirName}（绑定所属工作流）`)
+  } else if (boundWorkflow !== dirName) {
+    push(`workflow 声明为 ${JSON.stringify(boundWorkflow)}，与目录名 ${dirName} 不一致`)
+  }
+  // 版本可选：写了就必须一致（要求每次升版都改技能会变成负担，但写了就不能撒谎）
+  const boundVersion = typeof data['workflow-version'] === 'string' ? data['workflow-version'].trim() : ''
+  if (boundVersion && bundle?.version && boundVersion !== bundle.version) {
+    push(`workflow-version（${boundVersion}）与 workflow.json 的 version（${bundle.version}）不一致`)
+  }
+
+  const { files, errors: walkErrors } = listSkillFiles(skillDir)
+  errors.push(...walkErrors.map((msg) => `${dirName}: 技能 ${msg}`))
+
+  let totalBytes = 0
+  for (const file of files) {
+    totalBytes += file.sizeBytes
+    if (file.sizeBytes > LIMITS.skillFileMaxBytes) {
+      push(`${file.path} 超过 ${Math.round(LIMITS.skillFileMaxBytes / 1024)}KB`)
+    }
+  }
+  if (files.length > LIMITS.skillFileCountMax) {
+    push(`文件数超过 ${LIMITS.skillFileCountMax}`)
+  }
+  if (totalBytes > LIMITS.skillMaxBytes) {
+    push(`技能包总体积超过 ${Math.round(LIMITS.skillMaxBytes / 1024)}KB`)
+  }
+  if (!files.some((file) => file.path === 'SKILL.md')) {
+    push('文件清单里缺少 SKILL.md')
+  }
+
+  const hasScripts = files.some((file) => file.path.startsWith('scripts/'))
+  return {
+    errors,
+    skill: {
+      name,
+      description,
+      entry: 'SKILL.md',
+      hasScripts,
+      files,
+      sizeBytes: totalBytes
+    }
+  }
 }
 
 /**
@@ -191,13 +382,18 @@ export function validateAll() {
     }
     const dirErrors = validateWorkflow({ dirName, bundle, coverBytes, known })
     errors.push(...dirErrors)
-    if (dirErrors.length === 0) entries.push(entryFromBundle(bundle, dir, coverName))
+    // 技能包单独校验（不存在就是不带技能，属正常）
+    const skillResult = readSkillBundle(dir, dirName, bundle)
+    errors.push(...skillResult.errors)
+    if (dirErrors.length === 0 && skillResult.errors.length === 0) {
+      entries.push(entryFromBundle(bundle, dir, coverName, skillResult.skill))
+    }
   }
   return { errors, entries }
 }
 
 /** 由 bundle 派生索引条目（索引里的派生字段只在这里产生） */
-export function entryFromBundle(bundle, dir, coverName) {
+export function entryFromBundle(bundle, dir, coverName, skill = null) {
   const plan = bundle.plan
   const nodeTypes = nodeTypesOfPlan(plan)
   let sizeBytes = 0
@@ -223,7 +419,13 @@ export function entryFromBundle(bundle, dir, coverName) {
     },
     nodeCount: plan.nodes.length,
     edgeCount: (plan.edges ?? []).length,
-    sizeBytes
+    sizeBytes,
+    /**
+     * 技能包清单**只出现在索引里**：客户端必须先知道每个文件路径才能下载
+     *（raw.githubusercontent 没有目录列表 API），而这份清单是**从磁盘派生**的，
+     * 因此不存在"清单与磁盘漂移"。`workflow.json` 里不加任何技能字段。
+     */
+    ...(skill ? { skill } : {})
   }
 }
 
@@ -262,6 +464,11 @@ function main() {
     }
     if (stated?.nodeCount !== entry.nodeCount || stated?.edgeCount !== entry.edgeCount) {
       console.error(`✗ ${entry.id} 的节点/连线数与 plan 不一致`)
+      process.exit(1)
+    }
+    // 技能清单同样是派生字段：手改索引会让客户端去下载不存在（或漏掉）的文件
+    if (JSON.stringify(stated?.skill ?? null) !== JSON.stringify(entry.skill ?? null)) {
+      console.error(`✗ ${entry.id} 的技能清单与磁盘派生结果不一致`)
       process.exit(1)
     }
   }

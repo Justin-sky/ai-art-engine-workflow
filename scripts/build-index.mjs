@@ -5,8 +5,11 @@
  * **唯一的索引写入者**：贡献者不手改索引，CI 在 main 上自动重建 —— 这从根上消灭了
  * 「改了工作流忘了改索引」和「多人同时改索引」两类合并冲突。
  *
- * 索引里所有派生字段（requires / nodeCount / edgeCount / sizeBytes）都在这里产生，
- * 因此它们不可能与 workflow.json 撒谎。
+ * 索引里所有派生字段（requires / nodeCount / edgeCount / sizeBytes / **skill 文件清单**）
+ * 都在这里产生，因此它们不可能与 workflow.json 撒谎。
+ *
+ * 技能清单尤其只能来自这里：raw.githubusercontent 没有目录列表 API，客户端必须先知道
+ * 每个文件路径才能下载，而这份清单由磁盘派生，所以不存在"清单与磁盘漂移"。
  *
  * 注意：本文件里不要写出「星号紧跟斜杠」的 glob 字面量 —— 在块注释中它会提前结束注释，
  * 把后续文字当成代码，报出一个与真实位置无关的 SyntaxError。

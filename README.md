@@ -15,7 +15,8 @@
 ```
 index.json                 ← 目录索引（由 CI 生成，请勿手改）
 scripts/
-  validate.mjs             ← 格式与依赖校验
+  validate.mjs             ← 格式与依赖校验（含技能包）
+  validate.test.mjs        ← 校验器单测（node --test）
   build-index.mjs          ← 由 workflows/ 生成 index.json
   known-node-types.json    ← 应用已注册的节点类型白名单（由维护者更新）
 workflows/
@@ -23,6 +24,11 @@ workflows/
     workflow.json          ← 工作流本体（元数据 + plan）
     cover.png              ← 卡片封面（800×450，≤300KB）
     README.md              ← 可选：给人看的说明
+    skill/                 ← 可选：给 AI 对话 agent 的操作手册
+      SKILL.md             ← 必需（有 skill/ 就必需）
+      references/          ← 可选：字段速查、契约、示例
+      scripts/             ← 可选：客户端本轮不安装（见 CONTRIBUTING）
+      assets/              ← 可选：同上
 ```
 
 **`<workflow-id>` 必须是 kebab-case**（小写字母 / 数字 / 连字符），且与 `workflow.json` 里的
@@ -53,6 +59,24 @@ workflows/
 手改它会被 CI 拒绝。
 
 详细的字段说明与写作规范见 CONTRIBUTING.md。
+
+### 可选：给工作流配一个技能
+
+在 `workflows/<id>/skill/SKILL.md` 放一份**给 AI 对话 agent 的操作手册**，它就会随这条工作流
+一起被安装 —— 用户装上工作流，agent 也就学会了怎么用它。
+
+```
+workflows/<id>/skill/
+  SKILL.md          name: wf-<id> / description / workflow: <id>
+  references/*.md   字段速查、契约、示例
+```
+
+适合写进技能的内容：这条工作流**为什么**这么连、端口有哪些硬约束、上游输入怎么给、
+常见追问怎么答、参数去哪查。`plan` 表达不了的"先看结果再决定下一步"这类判断，正是
+agent 的用武之地。
+
+`SKILL.md` 必须写 `name: wf-<工作流 id>`（`wf-` 前缀用于避开内置技能），且文件清单会由
+CI 从磁盘派生进 `index.json` —— 你同样不需要手改索引。规则与拒绝原因见 CONTRIBUTING.md。
 
 ---
 

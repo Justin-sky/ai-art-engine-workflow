@@ -28,3 +28,8 @@ jobs:
 
       - name: 校验 index.json 与磁盘一致
         run: node scripts/build-index.mjs --check
+
+      # 技能包的规则分支多，且 dsh 对不合法的技能是**静默忽略**（只写日志）：
+      # 仓库侧漏检不会报错，只会让用户「装了却看不见」。所以这些规则必须有测试兜住。
+      - name: 校验器单测
+        run: node --test
