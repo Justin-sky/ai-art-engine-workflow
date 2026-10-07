@@ -66,8 +66,25 @@ workflows/my-workflow/
 - 每个类型的端口与参数：在应用里右键画布 →「添加节点」逐个看，或让应用内的 AI 对话
   用 `graph_node_types` 工具列出（含端口与默认参数）
 
-> **当前没有「把画布导出成工作流」的一键功能**，所以 `plan` 需要手写（或从
+> **当前没有「把画布导出成工作流」的一键功能**，所以第三方工作流的 `plan` 需要手写（或从
 > `workflows/` 下已有的工作流改写）。这是已知的贡献门槛，已在计划中。
+>
+> **例外：官方那 15 条工作流**（`game-ua-video` … `anim2d-gif`）的 `plan` **不要手改** ——
+> 它们与应用内置的一键工作流预设是同一张图，由**应用侧脚本导出**：
+>
+> ```bash
+> # 在 ai-art-engine 仓库里
+> npm run export:market          # 由内置预设重新生成各 workflow.json 的 plan 与 requires.nodeTypes
+> npm run check:market-plans     # 只校验；不一致则退出码 1（CI 就在跑这个）
+> ```
+>
+> 也就是说这两份拷贝是「生成 + 校验」的关系，不是各自维护。改官方工作流的图请改**应用预设**
+> （`src/shared/graph/aiWorkflowPresets.ts`），再导出到这里；直接改这边的 `plan` 会被 CI 判为
+> 漂移。`npm run export:market` 约定市场仓库在 `../ai-art-engine-workflow`，可用
+> `--dir <path>` 或 `AAE_WORKFLOW_MARKET_DIR` 指定。
+>
+> 导出只写 `plan` 与 `requires.nodeTypes` 两个字段，**不碰**元数据、封面与 `skill/`。
+> 导出后在本仓库跑 `node scripts/build-index.mjs && node scripts/validate.mjs`。
 
 ---
 
