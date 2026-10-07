@@ -1,11 +1,21 @@
 name: Validate
 
-# PR 上的门禁：格式 / 依赖 / 索引一致性。
+# PR 与 main 上的门禁：格式 / 依赖 / 索引一致性。
 # 这些规则与贡献者本地跑的 `node scripts/validate.mjs` **完全同一份代码** ——
 # 本地过、CI 不过这种事不该发生。
+#
+# main 也跑：`Build index` 里那一步是 `validate.mjs || true`（故意不拦，好让索引总能重建），
+# 所以**直接推到 main 的内容此前其实没有任何门禁**。这里补上。
 
 on:
   pull_request:
+    paths:
+      - 'workflows/**'
+      - 'index.json'
+      - 'scripts/**'
+      - '.github/workflows/**'
+  push:
+    branches: [main]
     paths:
       - 'workflows/**'
       - 'index.json'
@@ -31,5 +41,8 @@ jobs:
 
       # 技能包的规则分支多，且 dsh 对不合法的技能是**静默忽略**（只写日志）：
       # 仓库侧漏检不会报错，只会让用户「装了却看不见」。所以这些规则必须有测试兜住。
+      #
+      # 用显式 glob 而不是裸 `node --test`：自动发现的行为在各 Node 版本间有差异，
+      # 而 glob 由 shell（ubuntu 的 bash）展开，跨版本行为一致。
       - name: 校验器单测
-        run: node --test
+        run: node --test scripts/*.test.mjs
