@@ -72,6 +72,37 @@ workflows/
 
 ---
 
+## 镜像
+
+本仓库同时托管在两个地方，内容**完全一致**（同一 commit、逐字节相同的文件）：
+
+| 用途 | 地址 |
+|---|---|
+| 主库 | https://github.com/Justin-sky/ai-art-engine-workflow |
+| 镜像 | https://gitee.com/beijing_blue_whale_era_zhangjian/ai-art-engine-workflow |
+
+**为什么要镜像**：应用默认从 `raw.githubusercontent.com` 拉取索引，而该域在部分网络下不可达。
+Gitee 的 raw 地址在同类网络下通常可用，因此作为备用数据源。
+
+应用侧可切换数据源（`workflowMarket.source`）。Gitee 的 raw 根地址是：
+
+```
+https://gitee.com/beijing_blue_whale_era_zhangjian/ai-art-engine-workflow/raw/main
+```
+
+### 维护者：如何保持两侧同步
+
+```bash
+git remote add gitee https://gitee.com/beijing_blue_whale_era_zhangjian/ai-art-engine-workflow
+git push origin main
+git push gitee main
+```
+
+两个远端的内容必须一致 —— 不一致时应用会依数据源不同而看到不同的市场内容，
+这种「同一版本号、不同内容」的状态最难排查。
+
+---
+
 ## 许可
 
 本仓库的脚本与索引结构以 MIT 发布（见 LICENSE）。
