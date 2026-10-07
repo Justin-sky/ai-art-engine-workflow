@@ -84,11 +84,17 @@ workflows/
 **为什么要镜像**：应用默认从 `raw.githubusercontent.com` 拉取索引，而该域在部分网络下不可达。
 Gitee 的 raw 地址在同类网络下通常可用，因此作为备用数据源。
 
-应用侧可切换数据源（`workflowMarket.source`）。Gitee 的 raw 根地址是：
+**应用会自动降级**：主源不通时自动改用镜像，不需要用户配置；界面会说明当前数据来自镜像
+（用户有权知道内容从哪来）。两个源的 raw 根地址：
 
 ```
+https://raw.githubusercontent.com/Justin-sky/ai-art-engine-workflow/main
 https://gitee.com/beijing_blue_whale_era_zhangjian/ai-art-engine-workflow/raw/main
 ```
+
+也可以在设置里把 `workflowMarket.source` 填成**一个或多个**地址（换行分隔），
+按填写顺序依次尝试 —— 于是「自建主源 + 官方镜像」这种组合不需要额外机制。
+显式配置时**只**用配置的地址，不会偷偷混入官方源。
 
 ### 维护者：如何保持两侧同步
 
