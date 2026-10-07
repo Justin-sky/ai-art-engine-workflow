@@ -56,6 +56,9 @@
 - 行列的**权威来源**是内图里的「生成帧动画序列图」节点（`frame.animGen`）；存在内图时，其 `animRows` / `animCols` / `animKeyColor` 会**覆盖**外层同名参数（`readAnim2dFromNode` 只在没有内图状态时生效）。
 - 每次 cook **只保留本次切分结果**，不累积历史。
 - 切格使用整数切分 + `edgeInset: 'auto'` 内缩；`animKeyColor` 非空时同时做 chroma key。
+- **GIF 长边上限 `TARGET_FRAME_MAX = 512`**（`composeAnim2dGif.ts`）：等比缩放且**只缩不放**
+  （`scale = Math.min(1, 512 / max(宽, 高))`），所以 376×1024 的帧合出来是 188×512。
+  **逐帧 PNG 不受此限**，是原分辨率；需要高分辨率产物就交付 PNG 序列。
 
 ## note.text（出图说明）
 
