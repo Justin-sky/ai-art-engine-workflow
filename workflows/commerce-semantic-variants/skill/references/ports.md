@@ -4,11 +4,11 @@
 
 | key | typeId | 入 | 出 |
 |---|---|---|---|
-| analyze | `video.semanticAnalyze` | video | text（timeline JSON） |
+| analyze | `semantic.analyze` | video | text（timeline JSON） |
 | timeline | `semantic.timeline` | text | text |
 | compile | `semantic.compile` | text | text（commands + ScriptTimeline） |
-| repair | `video.repair` | text | text（plan + definition） |
-| variant | `video.variant` | text | text（plan；`recipeId`） |
+| repair | `semantic.repair` | text | text（plan + definition） |
+| variant | `semantic.variant` | text | text（plan；`recipeId`） |
 | note | `note.text` | — | — |
 
 ## semanticPacks 相对路径

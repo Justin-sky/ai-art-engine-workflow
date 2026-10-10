@@ -2,20 +2,20 @@
 name: wf-commerce-semantic-variants
 description: 用「带货语义拆解与变体」工作流把口播/卖货实拍视频拆成语义时间线，并规划换品、换话术、换语言变体。当用户要复刻带货视频、局部修复、批量变体时加载本技能。
 workflow: commerce-semantic-variants
-workflow-version: 1.0.0
+workflow-version: 1.0.1
 ---
 
 # 带货语义拆解与变体（commerce-semantic-variants）
 
 ## 这条工作流产出什么
 
-`口播卖货视频 → 语义时间线（镜头/事件/节拍/意图）→ 导演编译命令 + 修复/变体计划`
+`口播卖货视频 → 语义时间线（镜头/事件/节拍/意图）→ 语义编译命令 + 修复/变体计划`
 
-- **语义分析**（`video.semanticAnalyze`）：切镜、话语、实体与启发式事件/节拍。
+- **语义分析**（`semantic.analyze`）：切镜、话语、实体与启发式事件/节拍。
 - **语义时间线**（`semantic.timeline`）：只读承载分析结果 JSON。
-- **导演编译**（`semantic.compile`）：按规则包把意图编成数字运镜/调色等命令。
-- **修复计划**（`video.repair`）：按 edits 给出保留/替换/重算与费用估算。
-- **变体矩阵**（`video.variant`）：按 `semanticPacks` 里的配方展开（换品 / 开场话术 / 多语言）。
+- **语义编译**（`semantic.compile`）：按规则包把意图编成数字运镜/调色等命令。
+- **修复计划**（`semantic.repair`）：按 edits 给出保留/替换/重算与费用估算。
+- **变体矩阵**（`semantic.variant`）：按 `semanticPacks` 里的配方展开（换品 / 开场话术 / 多语言）。
 
 随包 `semanticPacks/`（纯 JSON，无可执行代码）：
 

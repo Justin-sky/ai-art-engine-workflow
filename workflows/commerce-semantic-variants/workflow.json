@@ -6,7 +6,7 @@
   "summary": "拆解口播卖货视频并规划换品/换话术/换语言变体",
   "category": "ad",
   "tags": ["语义时间线", "带货", "变体"],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "AIArtEngine",
     "url": "https://github.com/Justin-sky/ai-art-engine"
@@ -18,9 +18,9 @@
       "note.text",
       "semantic.compile",
       "semantic.timeline",
-      "video.repair",
-      "video.semanticAnalyze",
-      "video.variant"
+      "semantic.repair",
+      "semantic.analyze",
+      "semantic.variant"
     ],
     "appMinVersion": "7.4.0"
   },
@@ -37,7 +37,7 @@
     "nodes": [
       {
         "key": "analyze",
-        "typeId": "video.semanticAnalyze",
+        "typeId": "semantic.analyze",
         "title": "语义分析",
         "params": {
           "vocabulary": "commerce.v1"
@@ -51,16 +51,16 @@
       {
         "key": "compile",
         "typeId": "semantic.compile",
-        "title": "导演编译"
+        "title": "语义编译"
       },
       {
         "key": "repair",
-        "typeId": "video.repair",
+        "typeId": "semantic.repair",
         "title": "修复计划"
       },
       {
         "key": "variant",
-        "typeId": "video.variant",
+        "typeId": "semantic.variant",
         "title": "变体矩阵",
         "params": {
           "recipeId": "recipe.replace_product.v1"
@@ -71,7 +71,7 @@
         "typeId": "note.text",
         "title": "使用说明",
         "params": {
-          "text": "流程：把口播/卖货视频接到「语义分析」→ 查看语义时间线事件与节拍 →「导演编译」出运镜/调色命令 →「修复计划」确认失效范围 →「变体矩阵」按配方展开换品/换话术/换语言。随包 semanticPacks/ 含带货词表、导演规则与人格、3 个变体配方。"
+          "text": "流程：把口播/卖货视频接到「语义分析」→ 查看语义时间线事件与节拍 →「语义编译」出运镜/调色命令 →「修复计划」确认失效范围 →「变体矩阵」按配方展开换品/换话术/换语言。随包 semanticPacks/ 含带货词表、导演规则与人格、3 个变体配方。"
         }
       }
     ],

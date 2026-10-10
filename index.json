@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-10T07:43:14.776Z",
+  "generatedAt": "2026-10-10T12:34:24.659Z",
   "source": {
     "repo": "https://github.com/Justin-sky/ai-art-engine-workflow",
     "ref": "main"
@@ -140,7 +140,7 @@
         "带货",
         "变体"
       ],
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "AIArtEngine",
         "url": "https://github.com/Justin-sky/ai-art-engine"
@@ -150,17 +150,17 @@
       "requires": {
         "nodeTypes": [
           "note.text",
+          "semantic.analyze",
           "semantic.compile",
+          "semantic.repair",
           "semantic.timeline",
-          "video.repair",
-          "video.semanticAnalyze",
-          "video.variant"
+          "semantic.variant"
         ],
         "appMinVersion": "7.4.0"
       },
       "nodeCount": 6,
       "edgeCount": 4,
-      "sizeBytes": 2731,
+      "sizeBytes": 2733,
       "skill": {
         "name": "wf-commerce-semantic-variants",
         "description": "用「带货语义拆解与变体」工作流把口播/卖货实拍视频拆成语义时间线，并规划换品、换话术、换语言变体。当用户要复刻带货视频、局部修复、批量变体时加载本技能。",
@@ -169,14 +169,14 @@
         "files": [
           {
             "path": "references/ports.md",
-            "sizeBytes": 865
+            "sizeBytes": 866
           },
           {
             "path": "SKILL.md",
-            "sizeBytes": 2601
+            "sizeBytes": 2602
           }
         ],
-        "sizeBytes": 3466
+        "sizeBytes": 3468
       },
       "semanticPacks": {
         "files": [
