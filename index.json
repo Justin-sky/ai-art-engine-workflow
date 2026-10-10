@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-07T08:33:49.340Z",
+  "generatedAt": "2026-10-10T07:43:14.776Z",
   "source": {
     "repo": "https://github.com/Justin-sky/ai-art-engine-workflow",
     "ref": "main"
@@ -127,6 +127,85 @@
           }
         ],
         "sizeBytes": 9872
+      }
+    },
+    {
+      "id": "commerce-semantic-variants",
+      "title": "带货语义拆解与变体",
+      "titleEn": "Commerce semantic variants",
+      "summary": "拆解口播卖货视频并规划换品/换话术/换语言变体",
+      "category": "ad",
+      "tags": [
+        "语义时间线",
+        "带货",
+        "变体"
+      ],
+      "version": "1.0.0",
+      "author": {
+        "name": "AIArtEngine",
+        "url": "https://github.com/Justin-sky/ai-art-engine"
+      },
+      "license": "CC-BY-4.0",
+      "cover": "cover.png",
+      "requires": {
+        "nodeTypes": [
+          "note.text",
+          "semantic.compile",
+          "semantic.timeline",
+          "video.repair",
+          "video.semanticAnalyze",
+          "video.variant"
+        ],
+        "appMinVersion": "7.4.0"
+      },
+      "nodeCount": 6,
+      "edgeCount": 4,
+      "sizeBytes": 2731,
+      "skill": {
+        "name": "wf-commerce-semantic-variants",
+        "description": "用「带货语义拆解与变体」工作流把口播/卖货实拍视频拆成语义时间线，并规划换品、换话术、换语言变体。当用户要复刻带货视频、局部修复、批量变体时加载本技能。",
+        "entry": "SKILL.md",
+        "hasScripts": false,
+        "files": [
+          {
+            "path": "references/ports.md",
+            "sizeBytes": 865
+          },
+          {
+            "path": "SKILL.md",
+            "sizeBytes": 2601
+          }
+        ],
+        "sizeBytes": 3466
+      },
+      "semanticPacks": {
+        "files": [
+          {
+            "path": "semanticPacks/commerce-director-persona.json",
+            "sizeBytes": 398
+          },
+          {
+            "path": "semanticPacks/commerce-director-rules.json",
+            "sizeBytes": 1083
+          },
+          {
+            "path": "semanticPacks/commerce-vocabulary.json",
+            "sizeBytes": 810
+          },
+          {
+            "path": "semanticPacks/variant-replace-product.json",
+            "sizeBytes": 504
+          },
+          {
+            "path": "semanticPacks/variant-revoice-lang.json",
+            "sizeBytes": 568
+          },
+          {
+            "path": "semanticPacks/variant-rewrite-hook.json",
+            "sizeBytes": 618
+          }
+        ],
+        "sizeBytes": 3981
       }
     },
     {

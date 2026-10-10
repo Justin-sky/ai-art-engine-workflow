@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "variant-replace-product",
+  "title": "换品变体",
+  "kind": "recipe",
+  "recipe": {
+    "id": "recipe.replace_product.v1",
+    "title": "Replace product",
+    "slots": [
+      { "key": "productAssetId", "kind": "asset", "label": "新商品图" }
+    ],
+    "editTemplates": [
+      {
+        "kind": "replaceEntity",
+        "entityId": "ent.product.bottle",
+        "newAssetId": "{{productAssetId}}"
+      }
+    ],
+    "targetLevel": "L1"
+  }
+}

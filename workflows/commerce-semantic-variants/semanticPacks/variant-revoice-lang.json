@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "variant-revoice-lang",
+  "title": "多语言出海",
+  "kind": "recipe",
+  "recipe": {
+    "id": "recipe.revoice_lang.v1",
+    "title": "Revoice language",
+    "slots": [
+      { "key": "language", "kind": "language", "label": "目标语言" },
+      { "key": "voiceId", "kind": "voice", "label": "音色" }
+    ],
+    "editTemplates": [
+      {
+        "kind": "revoice",
+        "language": "{{language}}",
+        "voiceId": "{{voiceId}}",
+        "lipSync": true
+      }
+    ],
+    "targetLevel": "L1"
+  }
+}

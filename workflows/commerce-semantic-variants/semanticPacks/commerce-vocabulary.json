@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "commerce-vocabulary",
+  "title": "Commerce Beat Vocabulary",
+  "kind": "vocabulary",
+  "vocabulary": {
+    "id": "commerce.v1",
+    "title": "Commerce / 带货",
+    "beats": [
+      { "type": "hook", "label": "Hook", "description": "开场痛点或悬念" },
+      { "type": "problem", "label": "Problem", "description": "问题放大" },
+      { "type": "product-intro", "label": "Product Intro", "description": "产品出场" },
+      { "type": "demo", "label": "Demo", "description": "演示质地/用法" },
+      { "type": "proof", "label": "Proof", "description": "效果/对比证明" },
+      { "type": "offer", "label": "Offer", "description": "价格与赠品" },
+      { "type": "cta", "label": "CTA", "description": "行动号召" }
+    ]
+  }
+}

@@ -458,15 +458,101 @@ export function validateAll() {
     // 技能包单独校验（不存在就是不带技能，属正常）
     const skillResult = readSkillBundle(dir, dirName, bundle, known)
     errors.push(...skillResult.errors)
-    if (dirErrors.length === 0 && skillResult.errors.length === 0) {
-      entries.push(entryFromBundle(bundle, dir, coverName, skillResult.skill))
+    const packsResult = readSemanticPacks(dir, dirName, bundle)
+    errors.push(...packsResult.errors)
+    if (dirErrors.length === 0 && skillResult.errors.length === 0 && packsResult.errors.length === 0) {
+      entries.push(
+        entryFromBundle(bundle, dir, coverName, skillResult.skill, packsResult.semanticPacks)
+      )
     }
   }
   return { errors, entries }
 }
 
+/**
+ * 读取并校验 `workflows/<id>/semanticPacks/*.json`。
+ * 无目录且 workflow.json 未声明 semanticPacks → 正常；声明了就必须文件齐全且 kind 合法。
+ */
+export function readSemanticPacks(dir, dirName, bundle) {
+  const declared = Array.isArray(bundle?.semanticPacks)
+    ? bundle.semanticPacks.filter((p) => typeof p === 'string' && p.trim())
+    : []
+  const packsDir = join(dir, 'semanticPacks')
+  let hasDir = false
+  try {
+    hasDir = statSync(packsDir).isDirectory()
+  } catch {
+    hasDir = false
+  }
+  if (!hasDir && declared.length === 0) return { errors: [], semanticPacks: null }
+
+  const errors = []
+  const push = (msg) => errors.push(`${dirName}: semanticPacks ${msg}`)
+  const KIND_OK = new Set(['vocabulary', 'rules', 'recipe', 'persona'])
+
+  if (declared.length === 0 && hasDir) {
+    // 有目录但未声明：仍扫描落盘文件写入索引，方便安装
+  }
+  for (const rel of declared) {
+    const norm = rel.replace(/\\/g, '/')
+    if (!norm.startsWith('semanticPacks/') || norm.includes('..') || !norm.endsWith('.json')) {
+      push(`路径非法：${JSON.stringify(rel)}（须为 semanticPacks/*.json）`)
+      continue
+    }
+    try {
+      const abs = join(dir, ...norm.split('/'))
+      const raw = JSON.parse(readFileSync(abs, 'utf8'))
+      if (!raw || typeof raw !== 'object' || raw.schemaVersion !== 1) {
+        push(`${norm} 缺 schemaVersion:1`)
+      } else if (!KIND_OK.has(raw.kind)) {
+        push(`${norm} kind 非法（vocabulary|rules|recipe|persona）`)
+      } else if (typeof raw.id !== 'string' || !raw.id) {
+        push(`${norm} 缺 id`)
+      }
+    } catch (err) {
+      push(`无法读取 ${norm}（${err.message}）`)
+    }
+  }
+
+  const files = []
+  if (hasDir) {
+    try {
+      for (const name of readdirSync(packsDir).sort()) {
+        if (!name.endsWith('.json')) continue
+        const abs = join(packsDir, name)
+        const st = statSync(abs)
+        if (!st.isFile()) continue
+        files.push({ path: `semanticPacks/${name}`, sizeBytes: st.size })
+      }
+    } catch (err) {
+      push(`无法列举目录（${err.message}）`)
+    }
+  }
+
+  // 声明的路径必须都在磁盘上
+  const onDisk = new Set(files.map((f) => f.path))
+  for (const rel of declared) {
+    const norm = rel.replace(/\\/g, '/')
+    if (norm.startsWith('semanticPacks/') && !onDisk.has(norm)) {
+      push(`声明了但磁盘缺失：${norm}`)
+    }
+  }
+
+  if (files.length === 0) {
+    if (declared.length) return { errors, semanticPacks: null }
+    return { errors, semanticPacks: null }
+  }
+  return {
+    errors,
+    semanticPacks: {
+      files,
+      sizeBytes: files.reduce((sum, f) => sum + f.sizeBytes, 0)
+    }
+  }
+}
+
 /** 由 bundle 派生索引条目（索引里的派生字段只在这里产生） */
-export function entryFromBundle(bundle, dir, coverName, skill = null) {
+export function entryFromBundle(bundle, dir, coverName, skill = null, semanticPacks = null) {
   const plan = bundle.plan
   const nodeTypes = nodeTypesOfPlan(plan)
   let sizeBytes = 0
@@ -498,7 +584,9 @@ export function entryFromBundle(bundle, dir, coverName, skill = null) {
      *（raw.githubusercontent 没有目录列表 API），而这份清单是**从磁盘派生**的，
      * 因此不存在"清单与磁盘漂移"。`workflow.json` 里不加任何技能字段。
      */
-    ...(skill ? { skill } : {})
+    ...(skill ? { skill } : {}),
+    /** semanticPacks 文件清单同样只出现在索引里（从磁盘派生） */
+    ...(semanticPacks ? { semanticPacks } : {})
   }
 }
 
@@ -542,6 +630,13 @@ function main() {
     // 技能清单同样是派生字段：手改索引会让客户端去下载不存在（或漏掉）的文件
     if (JSON.stringify(stated?.skill ?? null) !== JSON.stringify(entry.skill ?? null)) {
       console.error(`✗ ${entry.id} 的技能清单与磁盘派生结果不一致`)
+      process.exit(1)
+    }
+    if (
+      JSON.stringify(stated?.semanticPacks ?? null) !==
+      JSON.stringify(entry.semanticPacks ?? null)
+    ) {
+      console.error(`✗ ${entry.id} 的 semanticPacks 清单与磁盘派生结果不一致`)
       process.exit(1)
     }
   }

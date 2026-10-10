@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "id": "commerce-semantic-variants",
+  "title": "带货语义拆解与变体",
+  "titleEn": "Commerce semantic variants",
+  "summary": "拆解口播卖货视频并规划换品/换话术/换语言变体",
+  "category": "ad",
+  "tags": ["语义时间线", "带货", "变体"],
+  "version": "1.0.0",
+  "author": {
+    "name": "AIArtEngine",
+    "url": "https://github.com/Justin-sky/ai-art-engine"
+  },
+  "license": "CC-BY-4.0",
+  "cover": "cover.png",
+  "requires": {
+    "nodeTypes": [
+      "note.text",
+      "semantic.compile",
+      "semantic.timeline",
+      "video.repair",
+      "video.semanticAnalyze",
+      "video.variant"
+    ],
+    "appMinVersion": "7.4.0"
+  },
+  "semanticPacks": [
+    "semanticPacks/commerce-vocabulary.json",
+    "semanticPacks/commerce-director-rules.json",
+    "semanticPacks/commerce-director-persona.json",
+    "semanticPacks/variant-replace-product.json",
+    "semanticPacks/variant-rewrite-hook.json",
+    "semanticPacks/variant-revoice-lang.json"
+  ],
+  "plan": {
+    "title": "带货语义拆解与变体",
+    "nodes": [
+      {
+        "key": "analyze",
+        "typeId": "video.semanticAnalyze",
+        "title": "语义分析",
+        "params": {
+          "vocabulary": "commerce.v1"
+        }
+      },
+      {
+        "key": "timeline",
+        "typeId": "semantic.timeline",
+        "title": "语义时间线"
+      },
+      {
+        "key": "compile",
+        "typeId": "semantic.compile",
+        "title": "导演编译"
+      },
+      {
+        "key": "repair",
+        "typeId": "video.repair",
+        "title": "修复计划"
+      },
+      {
+        "key": "variant",
+        "typeId": "video.variant",
+        "title": "变体矩阵",
+        "params": {
+          "recipeId": "recipe.replace_product.v1"
+        }
+      },
+      {
+        "key": "note",
+        "typeId": "note.text",
+        "title": "使用说明",
+        "params": {
+          "text": "流程：把口播/卖货视频接到「语义分析」→ 查看语义时间线事件与节拍 →「导演编译」出运镜/调色命令 →「修复计划」确认失效范围 →「变体矩阵」按配方展开换品/换话术/换语言。随包 semanticPacks/ 含带货词表、导演规则与人格、3 个变体配方。"
+        }
+      }
+    ],
+    "edges": [
+      { "from": "analyze", "to": "timeline", "fromPort": "out", "toPort": "in" },
+      { "from": "timeline", "to": "compile", "fromPort": "out", "toPort": "in" },
+      { "from": "timeline", "to": "repair", "fromPort": "out", "toPort": "in" },
+      { "from": "timeline", "to": "variant", "fromPort": "out", "toPort": "in" }
+    ]
+  }
+}

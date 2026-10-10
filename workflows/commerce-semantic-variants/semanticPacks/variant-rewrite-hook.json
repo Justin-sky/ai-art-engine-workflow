@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "variant-rewrite-hook",
+  "title": "A/B 开场话术",
+  "kind": "recipe",
+  "recipe": {
+    "id": "recipe.rewrite_hook.v1",
+    "title": "Rewrite hook utterance",
+    "slots": [
+      { "key": "hookText", "kind": "text", "label": "新开场文案" },
+      { "key": "voiceId", "kind": "voice", "label": "音色" }
+    ],
+    "editTemplates": [
+      {
+        "kind": "rewriteUtterance",
+        "utteranceId": "utt.001",
+        "newText": "{{hookText}}",
+        "voiceId": "{{voiceId}}",
+        "lipSync": false
+      }
+    ],
+    "targetLevel": "L3"
+  }
+}

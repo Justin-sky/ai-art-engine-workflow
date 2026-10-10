@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "commerce-director-rules",
+  "title": "Commerce Director Rules (Douyin pace)",
+  "kind": "rules",
+  "rules": {
+    "id": "commerce.douyin.v1",
+    "title": "抖音快节奏",
+    "rules": [
+      {
+        "id": "price-push",
+        "when": { "eventLabel": "price_announce" },
+        "then": [
+          { "track": "camera", "action": "push_in", "params": { "zoom": 1.15 } },
+          { "track": "audio", "action": "sfx", "params": { "id": "ui_ding" } },
+          { "track": "text", "action": "emphasis", "params": { "scale": 1.25 } }
+        ],
+        "reason": "价格出现时推近并强调"
+      },
+      {
+        "id": "cta-flash",
+        "when": { "beatType": "cta" },
+        "then": [{ "track": "vfx", "action": "brighten", "params": { "amount": 0.08 } }],
+        "reason": "CTA 提亮"
+      },
+      {
+        "id": "hook-hold",
+        "when": { "beatType": "hook" },
+        "then": [{ "track": "camera", "action": "static", "params": {} }],
+        "reason": "开场稳住"
+      }
+    ]
+  }
+}
